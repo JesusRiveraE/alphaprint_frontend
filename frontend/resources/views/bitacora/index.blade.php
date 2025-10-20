@@ -3,30 +3,28 @@
 @section('title', 'Bitácora')
 
 @section('content_header')
-    <h1>Bitácora de acciones</h1>
+    <h1>Bitácora del Sistema</h1>
 @stop
 
 @section('content')
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
             <tr>
                 <th>ID</th>
+                <th>Usuario</th>
                 <th>Módulo</th>
                 <th>Acción</th>
-                <th>Usuario</th>
-                <th>Rol</th>
                 <th>Fecha</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($bitacora as $registro)
+            @foreach($bitacora as $item)
                 <tr>
-                    <td>{{ $registro['id_bitacora'] ?? '' }}</td>
-                    <td>{{ $registro['modulo'] ?? '' }}</td>
-                    <td>{{ $registro['accion'] ?? '' }}</td>
-                    <td>{{ $registro['nombre_usuario'] ?? '---' }}</td>
-                    <td>{{ $registro['rol'] ?? '---' }}</td>
-                    <td>{{ $registro['fecha'] ?? '' }}</td>
+                    <td>{{ $item['id_bitacora'] ?? '' }}</td>
+                    <td>{{ $item['id_usuario'] ?? 'N/A' }}</td>
+                    <td>{{ $item['modulo'] ?? '' }}</td>
+                    <td>{{ $item['accion'] ?? '' }}</td>
+                    <td>{{ $item['fecha'] ?? '' }}</td>
                 </tr>
             @endforeach
         </tbody>

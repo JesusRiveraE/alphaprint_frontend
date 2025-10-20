@@ -7,15 +7,15 @@
 @stop
 
 @section('content')
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
             <tr>
                 <th>ID</th>
                 <th>Usuario</th>
                 <th>Correo</th>
                 <th>Rol</th>
                 <th>Activo</th>
-                <th>Fecha Creación</th>
+                <th>Fecha de Creación</th>
             </tr>
         </thead>
         <tbody>
@@ -25,7 +25,7 @@
                     <td>{{ $item['nombre_usuario'] ?? '' }}</td>
                     <td>{{ $item['correo'] ?? '' }}</td>
                     <td>{{ $item['rol'] ?? '' }}</td>
-                    <td>{{ $item['activo'] ?? '' }}</td>
+                    <td>{{ $item['activo'] ? 'Sí' : 'No' }}</td>
                     <td>{{ $item['fecha_creacion'] ?? '' }}</td>
                 </tr>
             @endforeach

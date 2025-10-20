@@ -7,15 +7,13 @@
 @stop
 
 @section('content')
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
             <tr>
                 <th>ID</th>
                 <th>Nombre</th>
-                <th>Área</th>
-                <th>Correo</th>
                 <th>Teléfono</th>
-                <th>Fecha Ingreso</th>
+                <th>Área</th>
                 <th>Usuario</th>
                 <th>Rol</th>
             </tr>
@@ -23,12 +21,10 @@
         <tbody>
             @foreach($empleados as $item)
                 <tr>
-                    <td>{{ $item['id_empleado'] ?? '' }}</td>
+                    <td>{{ $item['id_personal'] ?? '' }}</td>
                     <td>{{ $item['nombre'] ?? '' }}</td>
-                    <td>{{ $item['area'] ?? '' }}</td>
-                    <td>{{ $item['correo'] ?? '' }}</td>
                     <td>{{ $item['telefono'] ?? '' }}</td>
-                    <td>{{ $item['fecha_ingreso'] ?? '' }}</td>
+                    <td>{{ $item['area'] ?? '' }}</td>
                     <td>{{ $item['nombre_usuario'] ?? '' }}</td>
                     <td>{{ $item['rol'] ?? '' }}</td>
                 </tr>

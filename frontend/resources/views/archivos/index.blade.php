@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Valoraciones')
+@section('title', 'Archivos')
 
 @section('content_header')
-    <h1>Valoraciones de Clientes</h1>
+    <h1>Gestión de Archivos</h1>
 @stop
 
 @section('content')
@@ -11,22 +11,22 @@
         <thead class="thead-light">
             <tr>
                 <th>ID</th>
-                <th>Puntuación</th>
+                <th>ID Pedido</th>
+                <th>URL</th>
                 <th>Comentario</th>
-                <th>Fecha</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($valoraciones as $item)
+            @foreach($archivos as $item)
                 <tr>
-                    <td>{{ $item['id_valoracion'] ?? '' }}</td>
+                    <td>{{ $item['id_archivo'] ?? '' }}</td>
+                    <td>{{ $item['id_pedido'] ?? '' }}</td>
                     <td>
-                        @for($i = 1; $i <= 5; $i++)
-                            <i class="fas fa-star {{ $i <= $item['puntuacion'] ? 'text-warning' : 'text-muted' }}"></i>
-                        @endfor
+                        <a href="{{ $item['url'] }}" target="_blank" class="text-primary">
+                            Ver archivo
+                        </a>
                     </td>
                     <td>{{ $item['comentario'] ?? '' }}</td>
-                    <td>{{ $item['fecha'] ?? '' }}</td>
                 </tr>
             @endforeach
         </tbody>

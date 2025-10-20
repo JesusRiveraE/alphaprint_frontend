@@ -7,15 +7,14 @@
 @stop
 
 @section('content')
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
             <tr>
                 <th>ID</th>
                 <th>Nombre</th>
-                <th>Correo</th>
                 <th>Teléfono</th>
-                <th>Dirección</th>
-                <th>Fecha Registro</th>
+                <th>Correo</th>
+                <th>Fecha de Creación</th>
             </tr>
         </thead>
         <tbody>
@@ -23,10 +22,9 @@
                 <tr>
                     <td>{{ $item['id_cliente'] ?? '' }}</td>
                     <td>{{ $item['nombre'] ?? '' }}</td>
-                    <td>{{ $item['correo'] ?? '' }}</td>
                     <td>{{ $item['telefono'] ?? '' }}</td>
-                    <td>{{ $item['direccion'] ?? '' }}</td>
-                    <td>{{ $item['fecha_registro'] ?? '' }}</td>
+                    <td>{{ $item['correo'] ?? '' }}</td>
+                    <td>{{ $item['fecha_creacion'] ?? '' }}</td>
                 </tr>
             @endforeach
         </tbody>

@@ -31,13 +31,13 @@
                     {{ count($navbar_notificaciones ?? []) }} Notificaciones
                 </span>
 
-                @foreach(array_slice($navbar_notificaciones, 0, 5) as $noti)
+                @foreach(array_slice($navbar_notificaciones ?? [], 0, 5) as $noti)
                     <div class="dropdown-divider"></div>
                     <a href="{{ url('notificaciones') }}" class="dropdown-item">
-                        <i class="fas fa-envelope mr-2"></i> 
+                        <i class="fas fa-envelope mr-2"></i>
                         {{ $noti['mensaje'] ?? 'Nueva notificación' }}
                         <span class="float-right text-muted text-sm">
-                            {{ \Carbon\Carbon::parse($noti['fecha'])->diffForHumans() ?? '' }}
+                            {{ isset($noti['fecha']) ? \Carbon\Carbon::parse($noti['fecha'])->diffForHumans() : '' }}
                         </span>
                     </a>
                 @endforeach
@@ -47,6 +47,42 @@
                     Ver todas
                 </a>
             </div>
+        </li>
+
+        <!-- Usuario (Firebase) dropdown -->
+        <li class="nav-item dropdown user-menu">
+            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                <i class="fas fa-user-circle"></i>
+                <span class="d-none d-md-inline">
+                    {{ session('firebase_user.displayName') ?? session('firebase_user.email') ?? 'Usuario' }}
+                </span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                <!-- Encabezado -->
+                <li class="user-header bg-primary text-center">
+                    <i class="fas fa-user-circle fa-3x mb-2"></i>
+                    <p>
+                        {{ session('firebase_user.displayName') ?? session('firebase_user.email') ?? 'Usuario' }}
+                        <small>Sesión activa</small>
+                    </p>
+                </li>
+
+                <!-- Cuerpo -->
+                <li class="user-body">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <a href="#" class="btn btn-default btn-flat disabled">Perfil</a>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- Pie -->
+                <li class="user-footer">
+                    <a href="{{ route('logout') }}" class="btn btn-danger btn-block">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                    </a>
+                </li>
+            </ul>
         </li>
     </ul>
 </nav>

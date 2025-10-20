@@ -3,34 +3,28 @@
 @section('title', 'Notificaciones')
 
 @section('content_header')
-    <h1>Notificaciones</h1>
+    <h1>Notificaciones del Sistema</h1>
 @stop
 
 @section('content')
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
             <tr>
                 <th>ID</th>
-                <th>Pedido ID</th>
+                <th>Pedido</th>
                 <th>Mensaje</th>
                 <th>Leído</th>
                 <th>Fecha</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($notificaciones as $noti)
+            @foreach($notificaciones as $item)
                 <tr>
-                    <td>{{ $noti['id_notificacion'] ?? '' }}</td>
-                    <td>{{ $noti['id_pedido'] ?? '' }}</td>
-                    <td>{{ $noti['mensaje'] ?? '' }}</td>
-                    <td>
-                        @if(isset($noti['leido']) && $noti['leido'])
-                            <span class="badge badge-success">Sí</span>
-                        @else
-                            <span class="badge badge-danger">No</span>
-                        @endif
-                    </td>
-                    <td>{{ $noti['fecha'] ?? '' }}</td>
+                    <td>{{ $item['id_notificacion'] ?? '' }}</td>
+                    <td>{{ $item['id_pedido'] ?? '' }}</td>
+                    <td>{{ $item['mensaje'] ?? '' }}</td>
+                    <td>{{ $item['leido'] ? 'Sí' : 'No' }}</td>
+                    <td>{{ $item['fecha'] ?? '' }}</td>
                 </tr>
             @endforeach
         </tbody>

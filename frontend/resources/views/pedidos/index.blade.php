@@ -7,15 +7,15 @@
 @stop
 
 @section('content')
-    <table class="table table-striped">
-        <thead>
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
             <tr>
                 <th>ID</th>
                 <th>Cliente</th>
+                <th>Descripción</th>
+                <th>Total (Lps)</th>
                 <th>Estado</th>
-                <th>Total</th>
-                <th>Fecha</th>
-                <th>Observaciones</th>
+                <th>Fecha de Creación</th>
             </tr>
         </thead>
         <tbody>
@@ -23,10 +23,17 @@
                 <tr>
                     <td>{{ $item['id_pedido'] ?? '' }}</td>
                     <td>{{ $item['cliente_nombre'] ?? '' }}</td>
-                    <td>{{ $item['estado'] ?? '' }}</td>
-                    <td>{{ $item['total'] ?? '' }}</td>
+                    <td>{{ $item['descripcion'] ?? '' }}</td>
+                    <td>{{ number_format($item['total'] ?? 0, 2) }}</td>
+                    <td>
+                        <span class="badge 
+                            @if($item['estado'] == 'Pendiente') bg-warning 
+                            @elseif($item['estado'] == 'En Progreso') bg-info 
+                            @else bg-success @endif">
+                            {{ $item['estado'] ?? '' }}
+                        </span>
+                    </td>
                     <td>{{ $item['fecha_creacion'] ?? '' }}</td>
-                    <td>{{ $item['observaciones'] ?? '' }}</td>
                 </tr>
             @endforeach
         </tbody>

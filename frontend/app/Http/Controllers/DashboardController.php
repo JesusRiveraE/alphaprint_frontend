@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Http;
@@ -8,39 +7,44 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Consumir datos desde tu backend en Node.js
-        $clientes = Http::get('http://localhost:3000/api/clientes')->json();
-        $pedidos = Http::get('http://localhost:3000/api/pedidos')->json();
-        $empleados = Http::get('http://localhost:3000/api/empleados')->json();
-        $usuarios = Http::get('http://localhost:3000/api/usuarios')->json();
-        $valoraciones = Http::get('http://localhost:3000/api/valoraciones')->json();
-        $notificaciones = Http::get('http://localhost:3000/api/notificaciones')->json();
-        $bitacora = Http::get('http://localhost:3000/api/bitacora')->json();
+        // 🔹 Consultas al backend
+        $clientes = Http::get('http://localhost:3000/api/clientes')->json() ?? [];
+        $pedidos = Http::get('http://localhost:3000/api/pedidos')->json() ?? [];
+        $valoraciones = Http::get('http://localhost:3000/api/valoraciones')->json() ?? [];
+        $notificaciones = Http::get('http://localhost:3000/api/notificaciones')->json() ?? [];
+        $empleados = Http::get('http://localhost:3000/api/empleados')->json() ?? [];
 
-        // Métricas básicas
-        $totalClientes = count($clientes ?? []);
-        $totalPedidos = count($pedidos ?? []);
-        $totalEmpleados = count($empleados ?? []);
-        $totalUsuarios = count($usuarios ?? []);
-        $totalValoraciones = count($valoraciones ?? []);
-        $totalNotificaciones = count($notificaciones ?? []);
+        // 🔹 Totales
+        $totalClientes = count($clientes);
+        $totalPedidos = count($pedidos);
+        $totalValoraciones = count($valoraciones);
+        $totalNotificaciones = count($notificaciones);
+        $totalEmpleados = count($empleados);
 
-        // Ejemplo: Pedidos por estado
-        $pedidosPendientes = collect($pedidos)->where('estado', 'Pendiente')->count();
-        $pedidosProgreso   = collect($pedidos)->where('estado', 'En Progreso')->count();
-        $pedidosCompletados= collect($pedidos)->where('estado', 'Completado')->count();
+        // 🔹 Estadísticas
+        $pedidosPorEstado = collect($pedidos)->groupBy('estado')->map->count();
+        $empleadosPorArea = collect($empleados)->groupBy('area')->map->count();
+
+        // 🔹 Promedio de valoraciones
+        $promedioValoracion = count($valoraciones)
+            ? round(array_sum(array_column($valoraciones, 'puntuacion')) / count($valoraciones), 2)
+            : 0;
+
+        // 🔹 Últimos pedidos y valoraciones
+        $ultimosPedidos = array_slice(array_reverse($pedidos), 0, 5);
+        $ultimasValoraciones = array_slice(array_reverse($valoraciones), 0, 5);
 
         return view('dashboard.index', compact(
             'totalClientes',
             'totalPedidos',
-            'totalEmpleados',
-            'totalUsuarios',
             'totalValoraciones',
             'totalNotificaciones',
-            'pedidosPendientes',
-            'pedidosProgreso',
-            'pedidosCompletados',
-            'bitacora'
+            'totalEmpleados',
+            'pedidosPorEstado',
+            'empleadosPorArea',
+            'promedioValoracion',
+            'ultimosPedidos',
+            'ultimasValoraciones'
         ));
     }
 }
