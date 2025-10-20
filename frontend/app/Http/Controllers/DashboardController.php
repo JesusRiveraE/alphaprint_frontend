@@ -13,6 +13,7 @@ class DashboardController extends Controller
         $valoraciones = Http::get('http://localhost:3000/api/valoraciones')->json() ?? [];
         $notificaciones = Http::get('http://localhost:3000/api/notificaciones')->json() ?? [];
         $empleados = Http::get('http://localhost:3000/api/empleados')->json() ?? [];
+        $bitacora = Http::get('http://localhost:3000/api/bitacora')->json() ?? [];
 
         // 🔹 Totales
         $totalClientes = count($clientes);
@@ -30,9 +31,10 @@ class DashboardController extends Controller
             ? round(array_sum(array_column($valoraciones, 'puntuacion')) / count($valoraciones), 2)
             : 0;
 
-        // 🔹 Últimos pedidos y valoraciones
+        // 🔹 Últimos registros
         $ultimosPedidos = array_slice(array_reverse($pedidos), 0, 5);
         $ultimasValoraciones = array_slice(array_reverse($valoraciones), 0, 5);
+        $ultimasBitacora = array_slice(array_reverse($bitacora), 0, 5);
 
         return view('dashboard.index', compact(
             'totalClientes',
@@ -44,7 +46,8 @@ class DashboardController extends Controller
             'empleadosPorArea',
             'promedioValoracion',
             'ultimosPedidos',
-            'ultimasValoraciones'
+            'ultimasValoraciones',
+            'ultimasBitacora'
         ));
     }
 }

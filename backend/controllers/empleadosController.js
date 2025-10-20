@@ -1,6 +1,6 @@
-// controllers/empleadosController.js
 const db = require("../db");
 
+// Listar todos los empleados
 async function list(req, res) {
   try {
     const [results] = await db.query("CALL M4_LISTAR_EMPLEADOS()");
@@ -10,6 +10,7 @@ async function list(req, res) {
   }
 }
 
+// Obtener empleado por ID
 async function getById(req, res) {
   try {
     const [results] = await db.query("CALL M4_OBTENER_EMPLEADO(?)", [req.params.id]);
@@ -19,34 +20,27 @@ async function getById(req, res) {
   }
 }
 
+// Crear empleado
 async function create(req, res) {
   try {
-    const { id_usuario, nombre, area, correo, telefono, fecha_ingreso } = req.body;
-    await db.query("CALL M4_CREAR_EMPLEADO(?,?,?,?,?,?)", [
-      id_usuario,
-      nombre,
-      area,
-      correo,
-      telefono,
-      fecha_ingreso,
-    ]);
+    const { nombre, telefono, area, id_usuario } = req.body;
+    await db.query("CALL M4_CREAR_EMPLEADO(?,?,?,?)", [nombre, telefono, area, id_usuario]);
     res.json({ message: "Empleado creado con éxito" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
 
+// Actualizar empleado
 async function update(req, res) {
   try {
-    const { id_usuario, nombre, area, correo, telefono, fecha_ingreso } = req.body;
-    await db.query("CALL M4_ACTUALIZAR_EMPLEADO(?,?,?,?,?,?,?)", [
+    const { nombre, telefono, area, id_usuario } = req.body;
+    await db.query("CALL M4_ACTUALIZAR_EMPLEADO(?,?,?,?,?)", [
       req.params.id,
-      id_usuario,
       nombre,
-      area,
-      correo,
       telefono,
-      fecha_ingreso,
+      area,
+      id_usuario,
     ]);
     res.json({ message: "Empleado actualizado con éxito" });
   } catch (err) {
@@ -54,6 +48,7 @@ async function update(req, res) {
   }
 }
 
+// Eliminar empleado
 async function remove(req, res) {
   try {
     await db.query("CALL M4_ELIMINAR_EMPLEADO(?)", [req.params.id]);

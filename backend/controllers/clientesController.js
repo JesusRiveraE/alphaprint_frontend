@@ -1,6 +1,6 @@
-// controllers/clientesController.js
 const db = require("../db");
 
+// Listar todos los clientes
 async function list(req, res) {
   try {
     const [results] = await db.query("CALL M3_LISTAR_CLIENTES()");
@@ -10,6 +10,7 @@ async function list(req, res) {
   }
 }
 
+// Obtener cliente por ID
 async function getById(req, res) {
   try {
     const [results] = await db.query("CALL M3_OBTENER_CLIENTE(?)", [req.params.id]);
@@ -19,25 +20,26 @@ async function getById(req, res) {
   }
 }
 
+// Crear cliente
 async function create(req, res) {
   try {
-    const { nombre, correo, telefono, direccion } = req.body;
-    await db.query("CALL M3_CREAR_CLIENTE(?,?,?,?)", [nombre, correo, telefono, direccion]);
+    const { nombre, telefono, correo } = req.body;
+    await db.query("CALL M3_CREAR_CLIENTE(?,?,?)", [nombre, telefono, correo]);
     res.json({ message: "Cliente creado con éxito" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
 
+// Actualizar cliente
 async function update(req, res) {
   try {
-    const { nombre, correo, telefono, direccion } = req.body;
-    await db.query("CALL M3_ACTUALIZAR_CLIENTE(?,?,?,?,?)", [
+    const { nombre, telefono, correo } = req.body;
+    await db.query("CALL M3_ACTUALIZAR_CLIENTE(?,?,?,?)", [
       req.params.id,
       nombre,
-      correo,
       telefono,
-      direccion,
+      correo,
     ]);
     res.json({ message: "Cliente actualizado con éxito" });
   } catch (err) {
@@ -45,10 +47,11 @@ async function update(req, res) {
   }
 }
 
+// Eliminar cliente (elimina sus pedidos asociados también)
 async function remove(req, res) {
   try {
     await db.query("CALL M3_ELIMINAR_CLIENTE(?)", [req.params.id]);
-    res.json({ message: "Cliente eliminado con éxito" });
+    res.json({ message: "Cliente eliminado con éxito (y sus pedidos relacionados)" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,9 +1,8 @@
-// routes/historial.js
 const express = require("express");
 const router = express.Router();
 const ctrl = require("../controllers/historialController");
 
-router.get("/", ctrl.list);                  // listar todo el historial
-router.get("/pedido/:idPedido", ctrl.getByPedido); // historial de un pedido específico
+router.get("/", ctrl.list);
+router.get("/pedido/:id_pedido", ctrl.listByPedido);
 
 module.exports = router;

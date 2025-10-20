@@ -193,6 +193,13 @@ return [
             'icon' => 'fas fa-folder-open',
         ],
 
+        // Historial de Estados de Pedido
+        [
+            'text' => 'Historial de Pedidos',
+            'url'  => 'historial',
+            'icon' => 'fas fa-history',
+        ],
+
         // 🧭 Separador
         ['header' => 'ADMINISTRACIÓN'],
 

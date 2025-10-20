@@ -13,7 +13,8 @@ use App\Http\Controllers\{
     ClienteController,
     BitacoraController,
     NotificacionController,
-    ArchivoController
+    ArchivoController,
+    HistorialController
 };
 
 /*
@@ -78,6 +79,10 @@ Route::middleware(['auth.firebase'])->group(function () {
     Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
     Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
     Route::get('/archivos', [ArchivoController::class, 'index'])->name('archivos.index');
+
+    // 🔹 Nuevo módulo: Historial de Estado de Pedidos
+    Route::get('/historial', [HistorialController::class, 'index'])->name('historial.index');
+    Route::get('/historial/{id_pedido}', [HistorialController::class, 'show'])->name('historial.show');
 
     // Logout
     Route::get('/logout', function () {

@@ -1,15 +1,10 @@
-// controllers/historialController.js
 const db = require("../db");
 
 // Listar todo el historial
 async function list(req, res) {
   try {
     const [results] = await db.query(
-      "SELECT H.*, C.nombre AS cliente_nombre " +
-      "FROM HISTORIAL_ESTADOS_PEDIDO H " +
-      "INNER JOIN PEDIDOS P ON H.id_pedido = P.id_pedido " +
-      "INNER JOIN CLIENTES C ON P.id_cliente = C.id_cliente " +
-      "ORDER BY H.fecha_cambio DESC"
+      "SELECT H.*, P.descripcion, P.estado FROM HISTORIAL_ESTADO_PEDIDO H JOIN PEDIDOS P ON H.id_pedido = P.id_pedido ORDER BY H.fecha DESC"
     );
     res.json(results);
   } catch (err) {
@@ -17,16 +12,12 @@ async function list(req, res) {
   }
 }
 
-// Listar historial de un pedido
-async function getByPedido(req, res) {
+// Listar historial de un pedido específico
+async function listByPedido(req, res) {
   try {
     const [results] = await db.query(
-      "SELECT H.*, C.nombre AS cliente_nombre " +
-      "FROM HISTORIAL_ESTADOS_PEDIDO H " +
-      "INNER JOIN PEDIDOS P ON H.id_pedido = P.id_pedido " +
-      "INNER JOIN CLIENTES C ON P.id_cliente = C.id_cliente " +
-      "WHERE H.id_pedido = ? ORDER BY H.fecha_cambio DESC",
-      [req.params.idPedido]
+      "SELECT * FROM HISTORIAL_ESTADO_PEDIDO WHERE id_pedido = ? ORDER BY fecha DESC",
+      [req.params.id_pedido]
     );
     res.json(results);
   } catch (err) {
@@ -34,4 +25,4 @@ async function getByPedido(req, res) {
   }
 }
 
-module.exports = { list, getByPedido };
+module.exports = { list, listByPedido };

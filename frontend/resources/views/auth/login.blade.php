@@ -40,16 +40,25 @@
 @push('js')
 <script type="module" src="{{ asset('js/firebase.js') }}"></script>
 <script type="module">
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } 
-from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    sendPasswordResetEmail 
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { firebaseAuth } from "/js/firebase.js";
 
 const form = document.getElementById('loginForm');
 const registerBtn = document.getElementById('registerBtn');
 const forgot = document.getElementById('forgotPassword');
 
+/**
+ * 🔹 Guarda sesión en Laravel (ya lo haces)
+ * 🔹 Y sincroniza el usuario con MySQL vía Node.js
+ */
 async function saveSession(user) {
     const userData = { email: user.email, uid: user.uid };
+    
+    // 1️⃣ Guardar sesión en Laravel (como ya tenías)
     await fetch("{{ route('firebase.login') }}", {
         method: "POST",
         headers: {
@@ -58,8 +67,23 @@ async function saveSession(user) {
         },
         body: JSON.stringify({ user: userData }),
     });
+
+    // 2️⃣ Obtener token del usuario desde Firebase
+    const token = await user.getIdToken();
+
+    // 3️⃣ Enviar token al backend Node.js para registrarlo en MySQL
+    await fetch("http://localhost:3000/auth/sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+});
 }
 
+/** ==========================
+ * EVENTOS DEL LOGIN
+ * ========================== **/
+
+// 🔹 Login con email y contraseña
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
@@ -73,6 +97,7 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
+// 🔹 Registro de nuevo usuario
 registerBtn.addEventListener('click', async () => {
     const email = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
@@ -86,6 +111,7 @@ registerBtn.addEventListener('click', async () => {
     }
 });
 
+// 🔹 Recuperar contraseña
 forgot.addEventListener('click', async () => {
     const email = document.getElementById('email').value;
     if (!email) return alert("Ingresa tu correo");
@@ -98,3 +124,4 @@ forgot.addEventListener('click', async () => {
 });
 </script>
 @endpush
+

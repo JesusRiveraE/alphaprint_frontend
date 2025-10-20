@@ -1,6 +1,6 @@
-// controllers/valoracionesController.js
 const db = require("../db");
 
+// Listar todas las valoraciones
 async function list(req, res) {
   try {
     const [results] = await db.query("CALL M2_LISTAR_VALORACIONES()");
@@ -10,32 +10,15 @@ async function list(req, res) {
   }
 }
 
-async function getById(req, res) {
-  try {
-    const [results] = await db.query("CALL M2_OBTENER_VALORACION(?)", [req.params.id]);
-    res.json(results[0] ? results[0][0] : null);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
+// Crear valoración
 async function create(req, res) {
   try {
-    const { id_cliente, calificacion, comentario } = req.body;
-    await db.query("CALL M2_CREAR_VALORACION(?,?,?)", [id_cliente || null, calificacion, comentario]);
-    res.json({ message: "Valoración creada con éxito" });
+    const { puntuacion, comentario } = req.body;
+    await db.query("CALL M2_CREAR_VALORACION(?,?)", [puntuacion, comentario]);
+    res.json({ message: "Valoración registrada con éxito" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
 
-async function remove(req, res) {
-  try {
-    await db.query("CALL M2_ELIMINAR_VALORACION(?)", [req.params.id]);
-    res.json({ message: "Valoración eliminada con éxito" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}
-
-module.exports = { list, getById, create, remove };
+module.exports = { list, create };
