@@ -3,7 +3,12 @@
 @section('title', 'Dashboard')
 
 @section('content_header')
-    <h1>Panel General</h1>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Panel General</h1>
+        <button id="logout-btn" class="btn btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </button>
+    </div>
 @stop
 
 @section('content')
@@ -255,4 +260,6 @@ document.getElementById('send-btn').addEventListener('click', () => {
     chatBody.scrollTop = chatBody.scrollHeight;
 });
 </script>
+
+<script type="module" src="{{ asset('js/logout.js') }}"></script>
 @stop

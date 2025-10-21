@@ -38,6 +38,11 @@ app.use("/api/historial", require("./routes/historial"));
 app.use("/auth", require("./routes/auth")); // Ruta pública para sincronizar usuarios
 
 // ===============================
+// ⏰ CRON JOB PARA SINCRONIZACIÓN DE USUARIOS
+// ===============================
+require('./cron/sync-job'); // Inicia la tarea de sincronización
+
+// ===============================
 // 🧭 RUTA BASE
 // ===============================
 app.get("/", (req, res) => {

@@ -6,25 +6,20 @@
 <form id="loginForm" method="POST" action="javascript:void(0);">
     <div class="input-group mb-3">
         <input type="email" id="email" class="form-control" placeholder="Correo electrónico" required>
-        <div class="input-group-append">
-            <div class="input-group-text"><span class="fas fa-envelope"></span></div>
-        </div>
+        {{-- ... (código del input sin cambios) ... --}}
     </div>
 
     <div class="input-group mb-3">
         <input type="password" id="password" class="form-control" placeholder="Contraseña" required>
-        <div class="input-group-append">
-            <div class="input-group-text"><span class="fas fa-lock"></span></div>
-        </div>
+        {{-- ... (código del input sin cambios) ... --}}
     </div>
 
+    {{-- 🔰 CAMBIO 1: Botón de Ingresar ahora ocupa todo el ancho --}}
     <div class="row">
-        <div class="col-6">
+        <div class="col-12">
             <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
         </div>
-        <div class="col-6">
-            <button type="button" id="registerBtn" class="btn btn-success btn-block">Registrarse</button>
-        </div>
+        {{-- El botón de registrarse se ha eliminado de aquí --}}
     </div>
 </form>
 
@@ -33,95 +28,72 @@
 </p>
 @stop
 
-@section('auth_footer')
-<p class="text-center text-muted">© {{ date('Y') }} - Tu Empresa</p>
-@stop
+{{-- ... (auth_footer sin cambios) ... --}}
 
 @push('js')
-<script type="module" src="{{ asset('js/firebase.js') }}"></script>
 <script type="module">
-import { 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    sendPasswordResetEmail 
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { firebaseAuth } from "/js/firebase.js";
-
-const form = document.getElementById('loginForm');
-const registerBtn = document.getElementById('registerBtn');
-const forgot = document.getElementById('forgotPassword');
-
-/**
- * 🔹 Guarda sesión en Laravel (ya lo haces)
- * 🔹 Y sincroniza el usuario con MySQL vía Node.js
- */
-async function saveSession(user) {
-    const userData = { email: user.email, uid: user.uid };
+    // PASO 1: Importar las funciones que necesitamos del SDK de Firebase
+    import { signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     
-    // 1️⃣ Guardar sesión en Laravel (como ya tenías)
-    await fetch("{{ route('firebase.login') }}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-        },
-        body: JSON.stringify({ user: userData }),
+    // PASO 2: Importar nuestra configuración de Firebase desde el archivo que creamos
+    import { firebaseAuth } from "{{ asset('js/firebase.js') }}";
+
+    // PASO 3: Lógica de la página (ahora se ejecuta después de que todo se ha importado)
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('loginForm');
+        const forgot = document.getElementById('forgotPassword');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+
+            try {
+                // Ahora las variables 'signInWithEmailAndPassword' y 'firebaseAuth' existen
+                // gracias a los 'import' de arriba y están listas para usar.
+                const { user } = await signInWithEmailAndPassword(firebaseAuth, email, pass);
+                const token = await user.getIdToken();
+
+                const syncResponse = await fetch("http://localhost:3000/auth/sync", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token }),
+                });
+
+                const syncData = await syncResponse.json();
+                if (!syncResponse.ok) {
+                    throw new Error(syncData.error || 'Error de sincronización.');
+                }
+                
+                localStorage.setItem('userRole', syncData.rol);
+
+                await fetch("{{ route('firebase.login') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    },
+                    body: JSON.stringify({ user: { email: user.email, uid: user.uid } }),
+                });
+
+                window.location.href = "{{ url('home') }}";
+
+            } catch (err) {
+                console.error("Error detallado:", err);
+                alert("Error al iniciar sesión: " + err.message);
+            }
+        });
+
+        forgot.addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            if (!email) return alert("Ingresa tu correo");
+            try {
+                await sendPasswordResetEmail(firebaseAuth, email);
+                alert("Correo de recuperación enviado");
+            } catch (err) {
+                alert(err.message);
+            }
+        });
     });
-
-    // 2️⃣ Obtener token del usuario desde Firebase
-    const token = await user.getIdToken();
-
-    // 3️⃣ Enviar token al backend Node.js para registrarlo en MySQL
-    await fetch("http://localhost:3000/auth/sync", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token }),
-});
-}
-
-/** ==========================
- * EVENTOS DEL LOGIN
- * ========================== **/
-
-// 🔹 Login con email y contraseña
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    try {
-        const { user } = await signInWithEmailAndPassword(firebaseAuth, email, pass);
-        await saveSession(user);
-        window.location.href = "{{ url('home') }}";
-    } catch (err) {
-        alert(err.message);
-    }
-});
-
-// 🔹 Registro de nuevo usuario
-registerBtn.addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    try {
-        const { user } = await createUserWithEmailAndPassword(firebaseAuth, email, pass);
-        await saveSession(user);
-        alert("Usuario registrado correctamente");
-        window.location.href = "{{ url('home') }}";
-    } catch (err) {
-        alert(err.message);
-    }
-});
-
-// 🔹 Recuperar contraseña
-forgot.addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    if (!email) return alert("Ingresa tu correo");
-    try {
-        await sendPasswordResetEmail(firebaseAuth, email);
-        alert("Correo de recuperación enviado");
-    } catch (err) {
-        alert(err.message);
-    }
-});
 </script>
 @endpush
-
