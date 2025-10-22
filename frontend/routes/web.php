@@ -70,8 +70,32 @@ Route::middleware(['auth.firebase'])->group(function () {
     // Dashboard principal
     Route::get('/home', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Listados de los módulos
-    Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
+    /*
+    |--------------------------------------------------------------------------
+    | MÓDULO: PEDIDOS
+    |--------------------------------------------------------------------------
+    | Rutas RESTful completas para crear, editar y eliminar pedidos.
+    | Usa el PedidoController del frontend Laravel que se comunica con la API Node.js.
+    */
+    Route::resource('pedidos', PedidoController::class)->names([
+        'index'   => 'pedidos.index',
+        'create'  => 'pedidos.create',
+        'store'   => 'pedidos.store',
+        'edit'    => 'pedidos.edit',
+        'update'  => 'pedidos.update',
+        'destroy' => 'pedidos.destroy',
+    ])->parameters([
+        'pedidos' => 'id'
+    ]);
+
+    // Mostrar detalles
+Route::get('/pedidos/{id}/show', [PedidoController::class, 'show'])->name('pedidos.show');
+
+// Generar PDF del pedido
+Route::get('/pedidos/{id}/reporte', [PedidoController::class, 'reporte'])->name('pedidos.reporte');
+
+
+    // 🔹 MÓDULOS RESTANTES
     Route::get('/valoraciones', [ValoracionController::class, 'index'])->name('valoraciones.index');
     Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
     Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
@@ -80,7 +104,7 @@ Route::middleware(['auth.firebase'])->group(function () {
     Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
     Route::get('/archivos', [ArchivoController::class, 'index'])->name('archivos.index');
 
-    // 🔹 Nuevo módulo: Historial de Estado de Pedidos
+    // 🔹 Módulo adicional: Historial de estado de pedidos
     Route::get('/historial', [HistorialController::class, 'index'])->name('historial.index');
     Route::get('/historial/{id_pedido}', [HistorialController::class, 'show'])->name('historial.show');
 

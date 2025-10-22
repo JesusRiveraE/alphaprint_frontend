@@ -20,32 +20,40 @@ async function getById(req, res) {
   }
 }
 
-// Crear pedido
+// controllers/pedidosController.js
+
+// Crear pedido (corregido con 4 parámetros)
 async function create(req, res) {
   try {
-    const { id_cliente, descripcion, total } = req.body;
-    await db.query("CALL M2_CREAR_PEDIDO(?,?,?)", [id_cliente, descripcion, total]);
+    const { id_cliente, descripcion, total, fecha_entrega } = req.body;
+    await db.query("CALL M2_CREAR_PEDIDO(?,?,?,?)", [
+      id_cliente,
+      descripcion,
+      total,
+      fecha_entrega || null // permite valor nulo si no se envía
+    ]);
     res.json({ message: "Pedido creado con éxito" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
-
-// Actualizar pedido
+// Actualizar pedido (corregido con fecha_entrega)
 async function update(req, res) {
   try {
-    const { id_cliente, descripcion, total } = req.body;
-    await db.query("CALL M2_ACTUALIZAR_PEDIDO(?,?,?,?)", [
+    const { id_cliente, descripcion, total, fecha_entrega } = req.body;
+    await db.query("CALL M2_ACTUALIZAR_PEDIDO(?,?,?,?,?)", [
       req.params.id,
       id_cliente,
       descripcion,
       total,
+      fecha_entrega || null
     ]);
     res.json({ message: "Pedido actualizado con éxito" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
+
 
 // Cambiar estado del pedido
 async function changeStatus(req, res) {
