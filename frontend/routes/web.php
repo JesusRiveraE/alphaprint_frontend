@@ -74,7 +74,6 @@ Route::middleware(['auth.firebase'])->group(function () {
     |--------------------------------------------------------------------------
     | MÓDULO: PEDIDOS
     |--------------------------------------------------------------------------
-    | CRUD completo de pedidos, conectado a la API Node.js.
     */
     Route::resource('pedidos', PedidoController::class)->names([
         'index'   => 'pedidos.index',
@@ -87,18 +86,13 @@ Route::middleware(['auth.firebase'])->group(function () {
         'pedidos' => 'id'
     ]);
 
-    // Mostrar detalles de pedido
     Route::get('/pedidos/{id}/show', [PedidoController::class, 'show'])->name('pedidos.show');
-
-    // Generar PDF del pedido
     Route::get('/pedidos/{id}/reporte', [PedidoController::class, 'reporte'])->name('pedidos.reporte');
 
     /*
     |--------------------------------------------------------------------------
     | MÓDULO: CLIENTES
     |--------------------------------------------------------------------------
-    | CRUD completo de clientes, conectado a la API Node.js.
-    | Mantiene la misma estructura visual y lógica que el módulo de pedidos.
     */
     Route::resource('clientes', ClienteController::class)->names([
         'index'   => 'clientes.index',
@@ -111,18 +105,25 @@ Route::middleware(['auth.firebase'])->group(function () {
         'clientes' => 'id'
     ]);
 
-    // Mostrar detalles de cliente
     Route::get('/clientes/{id}/show', [ClienteController::class, 'show'])->name('clientes.show');
-
-    // Generar PDF del cliente
     Route::get('/clientes/{id}/reporte', [ClienteController::class, 'reporte'])->name('clientes.reporte');
+
+    /*
+    |--------------------------------------------------------------------------
+    | MÓDULO: VALORACIONES
+    |--------------------------------------------------------------------------
+    | Sin columna de acciones; incluye botón de reporte PDF general.
+    */
+    Route::get('/valoraciones', [ValoracionController::class, 'index'])->name('valoraciones.index');
+    Route::get('/valoraciones/create', [ValoracionController::class, 'create'])->name('valoraciones.create');
+    Route::post('/valoraciones/store', [ValoracionController::class, 'store'])->name('valoraciones.store');
+    Route::get('/valoraciones/reporte', [ValoracionController::class, 'reporte'])->name('valoraciones.reporte');
 
     /*
     |--------------------------------------------------------------------------
     | MÓDULOS RESTANTES
     |--------------------------------------------------------------------------
     */
-    Route::get('/valoraciones', [ValoracionController::class, 'index'])->name('valoraciones.index');
     Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
     Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
     Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
@@ -137,7 +138,11 @@ Route::middleware(['auth.firebase'])->group(function () {
     Route::get('/historial', [HistorialController::class, 'index'])->name('historial.index');
     Route::get('/historial/{id_pedido}', [HistorialController::class, 'show'])->name('historial.show');
 
-    // Logout
+    /*
+    |--------------------------------------------------------------------------
+    | LOGOUT
+    |--------------------------------------------------------------------------
+    */
     Route::get('/logout', function () {
         Session::forget(['firebase_user', 'db_user_id', 'db_user_role']);
         return redirect()->route('login');
