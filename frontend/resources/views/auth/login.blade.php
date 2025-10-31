@@ -1,5 +1,9 @@
 @extends('adminlte::auth.auth-page', ['auth_type' => 'login'])
 
+@push('css')
+    <link rel="stylesheet" href="{{ asset('css/custom-login.css') }}">
+@endpush
+
 @section('auth_header', 'Iniciar Sesión')
 
 @section('auth_body')

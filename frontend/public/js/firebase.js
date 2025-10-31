@@ -6,7 +6,8 @@ import {
     createUserWithEmailAndPassword, 
     sendPasswordResetEmail, 
     GoogleAuthProvider, 
-    signInWithPopup 
+    signInWithPopup,
+    signOut, 
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -23,4 +24,10 @@ const app = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-export { firebaseAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup, provider };
+window.firebaseAuth = firebaseAuth;
+
+window.firebaseSignOut = async () => {
+    await signOut(firebaseAuth);
+};
+
+export { firebaseAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithPopup, provider, signOut, };

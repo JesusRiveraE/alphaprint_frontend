@@ -1,0 +1,23 @@
+/* Mis colores personalizados para el Login de AlphaPrint */
+
+/* Cambia el color del botón "Ingresar" */
+.btn-primary {
+  background-color: #E84A5F;
+  border-color: #E84A5F;
+}
+
+/* Cambia el color del botón al pasar el mouse (un tono más oscuro) */
+.btn-primary:hover {
+  background-color: #d13c51;
+  border-color: #d13c51;
+}
+
+/* Cambia el color del enlace "Olvidé mi contraseña" */
+.login-card-body p a {
+  color: #E84A5F;
+}
+
+/* Cambia la franja azul de la parte superior de la caja */
+.card-primary.card-outline {
+  border-top-color: #E84A5F;
+}
