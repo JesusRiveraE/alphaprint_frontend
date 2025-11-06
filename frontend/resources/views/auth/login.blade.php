@@ -9,14 +9,17 @@
 @section('auth_body')
 <form id="loginForm" method="POST" action="javascript:void(0);">
     
-    {{-- Input de Email (sin cambios) --}}
+    {{-- 🔰 CAMBIO: Añadido el grupo completo para el email --}}
     <div class="input-group mb-3">
         <input type="email" id="email" class="form-control" placeholder="Correo electrónico" required>
-        {{-- Nota: Si AdminLTE solía poner un sobre, tu <input> simple lo está sobreescribiendo.
-             Para este ojito, necesitamos la estructura completa del input-group. --}}
+        <div class="input-group-append">
+            <div class="input-group-text">
+                <span class="fas fa-envelope"></span> {{-- Ícono del sobre --}}
+            </div>
+        </div>
     </div>
 
-    {{-- 🔰 CAMBIO: Grupo de Contraseña con el ojito --}}
+    {{-- Grupo de Contraseña con el ojito (como lo dejamos antes) --}}
     <div class="input-group mb-3">
         <input type="password" id="password" class="form-control" placeholder="Contraseña" required>
         <div class="input-group-append">
