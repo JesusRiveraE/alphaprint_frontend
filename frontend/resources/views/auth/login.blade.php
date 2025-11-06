@@ -83,8 +83,34 @@
                 window.location.href = "{{ url('home') }}";
 
             } catch (err) {
-                console.error("Error detallado:", err);
-                alert("Error al iniciar sesión: " + err.message);
+                console.error("Error detallado:", err); // Mantenemos esto para depurar
+
+                let mensajeParaElUsuario = "Ocurrió un error inesperado. Intenta de nuevo.";
+
+                // "Traducimos" el código de error de Firebase a un mensaje amigable
+                switch (err.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                    case 'auth/invalid-credential':
+                    case 'auth/invalid-login-credentials':
+                        mensajeParaElUsuario = "Correo o contraseña incorrectos. Por favor, verifique sus datos.";
+                        break;
+                    case 'auth/invalid-email':
+                        mensajeParaElUsuario = "El formato del correo electrónico no es válido.";
+                        break;
+                    case 'auth/too-many-requests':
+                        mensajeParaElUsuario = "Detectamos demasiados intentos fallidos. Su cuenta ha sido bloqueada temporalmente. Intente de nuevo más tarde.";
+                        break; 
+                    case 'auth/user-disabled':
+                        mensajeParaElUsuario = "Esta cuenta ha sido deshabilitada por un administrador.";
+                        break;
+                    case 'auth/network-request-failed':
+                        mensajeParaElUsuario = "Error de red. Revisa tu conexión a internet.";
+                        break;
+                }
+
+                // Mostramos el mensaje "traducido"
+                alert(mensajeParaElUsuario);
             }
         });
 
