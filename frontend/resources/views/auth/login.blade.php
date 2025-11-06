@@ -8,22 +8,29 @@
 
 @section('auth_body')
 <form id="loginForm" method="POST" action="javascript:void(0);">
+    
+    {{-- Input de Email (sin cambios) --}}
     <div class="input-group mb-3">
         <input type="email" id="email" class="form-control" placeholder="Correo electrónico" required>
-        {{-- ... (código del input sin cambios) ... --}}
+        {{-- Nota: Si AdminLTE solía poner un sobre, tu <input> simple lo está sobreescribiendo.
+             Para este ojito, necesitamos la estructura completa del input-group. --}}
     </div>
 
+    {{-- 🔰 CAMBIO: Grupo de Contraseña con el ojito --}}
     <div class="input-group mb-3">
         <input type="password" id="password" class="form-control" placeholder="Contraseña" required>
-        {{-- ... (código del input sin cambios) ... --}}
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="togglePassword" style="border-left: 0; border-color: #ced4da;">
+                <span id="toggleIcon" class="fas fa-eye"></span>
+            </button>
+        </div>
     </div>
 
-    {{-- 🔰 CAMBIO 1: Botón de Ingresar ahora ocupa todo el ancho --}}
+    {{-- Botón de Ingresar (sin cambios) --}}
     <div class="row">
         <div class="col-12">
             <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
         </div>
-        {{-- El botón de registrarse se ha eliminado de aquí --}}
     </div>
 </form>
 
@@ -42,19 +49,44 @@
     // PASO 2: Importar nuestra configuración de Firebase desde el archivo que creamos
     import { firebaseAuth } from "{{ asset('js/firebase.js') }}";
 
-    // PASO 3: Lógica de la página (ahora se ejecuta después de que todo se ha importado)
+    // PASO 3: Lógica de la página
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('loginForm');
         const forgot = document.getElementById('forgotPassword');
+        const passwordInput = document.getElementById('password'); // 🔰 Definimos el input aquí para reusarlo
+
+        // 🔰🔰 INICIO: Lógica para mostrar/ocultar contraseña 🔰🔰
+        const togglePassword = document.getElementById('togglePassword');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (togglePassword) {
+            togglePassword.addEventListener('click', function() {
+                // Cambia el tipo del input
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+
+                // Cambia el ícono del ojo
+                if (type === 'text') {
+                    // Ojo tachado
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                } else {
+                    // Ojo normal
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            });
+        }
+        // 🔰🔰 FIN: Lógica para mostrar/ocultar contraseña 🔰🔰
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
+            const pass = passwordInput.value; // 🔰 Usamos la variable que ya definimos
 
             try {
-                // Ahora las variables 'signInWithEmailAndPassword' y 'firebaseAuth' existen
-                // gracias a los 'import' de arriba y están listas para usar.
+                // ... (el resto de tu lógica de login de Firebase) ...
+                
                 const { user } = await signInWithEmailAndPassword(firebaseAuth, email, pass);
                 const token = await user.getIdToken();
 
@@ -83,11 +115,11 @@
                 window.location.href = "{{ url('home') }}";
 
             } catch (err) {
-                console.error("Error detallado:", err); // Mantenemos esto para depurar
+                console.error("Error detallado:", err); 
 
                 let mensajeParaElUsuario = "Ocurrió un error inesperado. Intenta de nuevo.";
 
-                // "Traducimos" el código de error de Firebase a un mensaje amigable
+                // "Traducimos" el código de error de Firebase
                 switch (err.code) {
                     case 'auth/user-not-found':
                     case 'auth/wrong-password':
@@ -109,7 +141,6 @@
                         break;
                 }
 
-                // Mostramos el mensaje "traducido"
                 alert(mensajeParaElUsuario);
             }
         });
