@@ -60,3 +60,36 @@
     </div>
 </div>
 @stop
+@section('css')
+<style>
+    /* Cambia el color principal (bordes y encabezados de cards primary) */
+    .card-primary:not(.card-outline) > .card-header {
+        background-color: #e24e60 !important;
+        border-bottom-color: #e24e60 !important;
+    }
+
+    .card-primary.card-outline {
+        border-top: 3px solid #e24e60 !important;
+    }
+
+    .card-primary.card-outline .card-header {
+        border-color: #e24e60 !important;
+        color: #e24e60 !important;
+    }
+
+    /* También aplica a botones o cajas si quieres mantener coherencia */
+    .btn-primary, .bg-primary, .badge-primary {
+        background-color: #e24e60 !important;
+        border-color: #e24e60 !important;
+    }
+    .text-primary {
+        color: #e24e60 !important;
+    }
+
+    /* Gráficos, íconos y acentos del dashboard */
+    .card-outline.card-primary h3, 
+    .card-outline.card-primary .card-title i {
+        color: #e24e60 !important;
+    }
+</style>
+@stop
