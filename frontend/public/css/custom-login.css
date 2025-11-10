@@ -1,0 +1,38 @@
+/* Mis colores personalizados para el Login de AlphaPrint */
+
+/* Cambia el color del botón "Ingresar" */
+.btn-primary {
+  background-color: #E84A5F;
+  border-color: #E84A5F;
+}
+
+/* Cambia el color del botón al pasar el mouse (un tono más oscuro) */
+.btn-primary:hover {
+  background-color: #d13c51;
+  border-color: #d13c51;
+}
+
+/* Sobrescribimos los estados 'active' (al hacer clic) y 'focus' (cuando está seleccionado)
+ * que son los que AdminLTE/Bootstrap dejan en AZUL por defecto.
+ */
+.btn-primary:active,
+.btn-primary:focus,
+.btn-primary.focus,
+.btn-primary:active:focus {
+  background-color: #d13c51 !important;  /* Forzamos el color oscuro de hover */
+  border-color: #d13c51 !important;    /* Forzamos el color oscuro de hover */
+  
+  /* Esto es crucial: reemplazamos el resplandor AZUL por defecto
+     por un resplandor ROJO que coincide con tu marca. */
+  box-shadow: 0 0 0 0.2rem rgba(232, 74, 95, 0.5) !important; 
+}
+
+/* Cambia el color del enlace "Olvidé mi contraseña" */
+.login-card-body p a {
+  color: #E84A5F;
+}
+
+/* Cambia la franja azul de la parte superior de la caja */
+.card-primary.card-outline {
+  border-top-color: #E84A5F;
+}

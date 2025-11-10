@@ -18,7 +18,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'use_ico_only' => false,
+    'use_ico_only' => true,
     'use_full_favicon' => false,
 
     /*
@@ -296,6 +296,23 @@ return [
                     'type' => 'js',
                     'asset' => false,
                     'location' => '//cdn.jsdelivr.net/npm/chart.js',
+                ],
+            ],
+        ],
+        'InactivityTimer' => [
+            'active' => true, // Activa el plugin personalizado
+            'files' => [
+                // 🟢 Primero se carga Firebase
+                [
+                    'type' => 'js',
+                    'asset' => true, // Indica que el archivo está en la carpeta /public
+                    'location' => 'js/firebase.js', // Ruta a tu script Firebase
+                ],
+                // 🟢 Luego se carga el temporizador de inactividad
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'js/inactivity-timer.js', // Ruta al temporizador
                 ],
             ],
         ],
