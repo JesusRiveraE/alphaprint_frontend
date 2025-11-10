@@ -112,7 +112,6 @@ Route::middleware(['auth.firebase'])->group(function () {
     |--------------------------------------------------------------------------
     | MÓDULO: VALORACIONES
     |--------------------------------------------------------------------------
-    | Sin columna de acciones; incluye botón de reporte PDF general.
     */
     Route::get('/valoraciones', [ValoracionController::class, 'index'])->name('valoraciones.index');
     Route::get('/valoraciones/create', [ValoracionController::class, 'create'])->name('valoraciones.create');
@@ -121,14 +120,30 @@ Route::middleware(['auth.firebase'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | MÓDULO: BITÁCORA
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
+    Route::get('/bitacora/reporte', [BitacoraController::class, 'reporte'])->name('bitacora.reporte');
+
+    /*
+    |--------------------------------------------------------------------------
+    | MÓDULO: ARCHIVOS
+    |--------------------------------------------------------------------------
+    | Permite listar, crear y registrar archivos vinculados a pedidos.
+    */
+    Route::get('/archivos', [ArchivoController::class, 'index'])->name('archivos.index');
+    Route::get('/archivos/crear', [ArchivoController::class, 'create'])->name('archivos.create');
+    Route::post('/archivos', [ArchivoController::class, 'store'])->name('archivos.store');
+
+    /*
+    |--------------------------------------------------------------------------
     | MÓDULOS RESTANTES
     |--------------------------------------------------------------------------
     */
     Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
     Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
-    Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
     Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
-    Route::get('/archivos', [ArchivoController::class, 'index'])->name('archivos.index');
 
     /*
     |--------------------------------------------------------------------------
