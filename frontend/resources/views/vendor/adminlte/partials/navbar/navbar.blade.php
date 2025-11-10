@@ -49,6 +49,66 @@
             </div>
         </li>
 
+        <!-- 📅 CALENDARIO: Próximas entregas -->
+        <li class="nav-item dropdown">
+            <a class="nav-link" data-toggle="dropdown" href="#" title="Próximas entregas">
+                <i class="fas fa-calendar-alt"></i>
+                @php $countCalendar = count($navbar_entregas ?? []); @endphp
+                @if($countCalendar > 0)
+                    <span class="badge badge-info navbar-badge">{{ $countCalendar }}</span>
+                @endif
+            </a>
+            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right p-0" style="min-width: 320px;">
+                <div class="dropdown-header bg-light border-bottom">
+                    <strong>{{ $countCalendar }}</strong> próximas entregas
+                </div>
+
+                @php
+                    use Carbon\Carbon;
+                    $hoy = Carbon::today();
+                @endphp
+
+                @forelse($navbar_entregas ?? [] as $it)
+                    @php
+                        $fecha = !empty($it['fecha_entrega']) ? Carbon::parse($it['fecha_entrega']) : null;
+                        $isToday = $fecha && $fecha->isSameDay($hoy);
+                        $badgeClass = 'badge-success'; // futuro
+                        if ($isToday) $badgeClass = 'badge-warning'; // hoy
+                    @endphp
+
+                    <a href="{{ route('pedidos.show', ['id' => $it['id_pedido'] ?? 0]) }}" class="dropdown-item">
+                        <div class="d-flex align-items-center">
+                            <i class="far fa-calendar-check mr-2 text-primary"></i>
+                            <div class="flex-fill">
+                                <div class="d-flex justify-content-between">
+                                    <strong>#{{ $it['id_pedido'] ?? '' }}</strong>
+                                    <span class="badge {{ $badgeClass }}">
+                                        {{ $fecha ? $fecha->format('d/m/Y') : '-' }}
+                                    </span>
+                                </div>
+                                <div class="small text-muted">
+                                    {{ $it['descripcion'] ?? 'Pedido' }}
+                                    @if(!empty($it['cliente_nombre']))
+                                        — {{ $it['cliente_nombre'] }}
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <div class="dropdown-divider m-0"></div>
+                @empty
+                    <div class="dropdown-item text-center text-muted small py-3">
+                        No hay entregas próximas
+                    </div>
+                    <div class="dropdown-divider m-0"></div>
+                @endforelse
+
+                <a href="{{ route('pedidos.index') }}" class="dropdown-item dropdown-footer text-center">
+                    Ver todos los pedidos
+                </a>
+            </div>
+        </li>
+
         <!-- Usuario (Firebase) dropdown -->
         <li class="nav-item dropdown user-menu">
             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
