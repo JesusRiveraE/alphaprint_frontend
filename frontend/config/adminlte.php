@@ -52,10 +52,10 @@ return [
         'enabled' => false,
         'img' => [
             'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt' => 'Auth Logo',
-            'class' => '',
-            'width' => 50,
-            'height' => 50,
+            'alt'  => 'Auth Logo',
+            'class'=> '',
+            'width'=> 50,
+            'height'=> 50,
         ],
     ],
 
@@ -70,10 +70,10 @@ return [
         'mode' => 'fullscreen',
         'img' => [
             'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt' => 'Alpha Print',
+            'alt'  => 'Alpha Print',
             'effect' => 'animation__shake',
             'width' => 60,
-            'height' => 60,
+            'height'=> 60,
         ],
     ],
 
@@ -158,7 +158,7 @@ return [
 
     'laravel_asset_bundling' => false,
     'laravel_css_path' => 'css/app.css',
-    'laravel_js_path' => 'js/app.js',
+    'laravel_js_path'  => 'js/app.js',
 
     /*
     |--------------------------------------------------------------------------
@@ -191,6 +191,13 @@ return [
             'text' => 'Archivos',
             'url'  => 'archivos',
             'icon' => 'fas fa-folder-open',
+        ],
+
+        // 📅 Calendario (NUEVO)
+        [
+            'text' => 'Calendario',
+            'url'  => 'calendario', // ruta: /calendario
+            'icon' => 'fas fa-calendar-alt',
         ],
 
         // Historial de Estados de Pedido
@@ -300,19 +307,19 @@ return [
             ],
         ],
         'InactivityTimer' => [
-            'active' => true, // Activa el plugin personalizado
+            'active' => true,
             'files' => [
-                // 🟢 Primero se carga Firebase
-                [
-                    'type' => 'js',
-                    'asset' => true, // Indica que el archivo está en la carpeta /public
-                    'location' => 'js/firebase.js', // Ruta a tu script Firebase
-                ],
-                // 🟢 Luego se carga el temporizador de inactividad
+                // Primero Firebase
                 [
                     'type' => 'js',
                     'asset' => true,
-                    'location' => 'js/inactivity-timer.js', // Ruta al temporizador
+                    'location' => 'js/firebase.js',
+                ],
+                // Luego el temporizador
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'js/inactivity-timer.js',
                 ],
             ],
         ],
