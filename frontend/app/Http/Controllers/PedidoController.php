@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use Barryvdh\DomPDF\Facade\Pdf; // 👈 Importación correcta para DomPDF
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PedidoController extends Controller
 {
@@ -14,7 +14,7 @@ class PedidoController extends Controller
 
     public function __construct()
     {
-        // Puedes mover esto a .env -> API_BASE=http://localhost:3000
+        // Sugerencia: en .env -> API_BASE=http://localhost:3000
         $this->apiBase = rtrim(env('API_BASE', 'http://localhost:3000'), '/');
     }
 
@@ -38,10 +38,28 @@ class PedidoController extends Controller
             'id_cliente'     => ['required', 'integer'],
             'descripcion'    => ['nullable', 'string', 'max:255'],
             'total'          => ['required', 'numeric', 'min:0'],
-            'fecha_entrega'  => ['nullable', 'date'],
+            'estado'         => ['nullable', 'in:Pendiente,En Progreso,Completado'],
+            'fecha_entrega'  => ['nullable', 'date'],       // Y-m-d
+            'hora_entrega'   => ['nullable', 'date_format:H:i'], // HH:mm
         ]);
 
-        $resp = Http::post($this->apiBase . '/api/pedidos', $data);
+        // Combinar fecha + hora si ambas vienen
+        if (!empty($data['fecha_entrega']) && !empty($data['hora_entrega'])) {
+            $data['fecha_entrega'] = $data['fecha_entrega'] . ' ' . $data['hora_entrega'] . ':00';
+        }
+        // Ya no necesitamos enviar hora por separado
+        unset($data['hora_entrega']);
+
+        // Si no envían estado, el backend usará el default (Pendiente)
+        $payload = [
+            'id_cliente'    => $data['id_cliente'],
+            'descripcion'   => $data['descripcion'] ?? null,
+            'total'         => $data['total'],
+            'estado'        => $data['estado'] ?? null,
+            'fecha_entrega' => $data['fecha_entrega'] ?? null,
+        ];
+
+        $resp = Http::post($this->apiBase . '/api/pedidos', $payload);
 
         if ($resp->successful()) {
             Session::flash('success', 'Pedido creado con éxito');
@@ -68,11 +86,18 @@ class PedidoController extends Controller
             'id_cliente'     => ['required', 'integer'],
             'descripcion'    => ['nullable', 'string', 'max:255'],
             'total'          => ['required', 'numeric', 'min:0'],
-            'fecha_entrega'  => ['nullable', 'date'],
+            'fecha_entrega'  => ['nullable', 'date'],            // Y-m-d
+            'hora_entrega'   => ['nullable', 'date_format:H:i'], // HH:mm
             'estado'         => ['nullable', 'in:Pendiente,En Progreso,Completado'],
         ]);
 
-        // Primero actualizamos campos generales
+        // Combinar fecha + hora si ambas vienen
+        if (!empty($data['fecha_entrega']) && !empty($data['hora_entrega'])) {
+            $data['fecha_entrega'] = $data['fecha_entrega'] . ' ' . $data['hora_entrega'] . ':00';
+        }
+        unset($data['hora_entrega']);
+
+        // 1) Actualizar campos principales
         $respMain = Http::put($this->apiBase . "/api/pedidos/{$id}", [
             'id_cliente'    => $data['id_cliente'],
             'descripcion'   => $data['descripcion'] ?? null,
@@ -84,7 +109,7 @@ class PedidoController extends Controller
             return back()->withErrors(['api' => $respMain->json('error') ?? 'Error al actualizar pedido'])->withInput();
         }
 
-        // Si se envió estado y cambió, hacemos la llamada específica
+        // 2) Cambiar estado (si viene)
         if (!empty($data['estado'])) {
             $respEstado = Http::put($this->apiBase . "/api/pedidos/{$id}/estado", [
                 'estado' => $data['estado'],
@@ -127,8 +152,28 @@ class PedidoController extends Controller
             abort(404);
         }
 
-        // ✅ Uso correcto del facade Pdf
         $pdf = Pdf::loadView('pedidos.reporte', compact('pedido'));
         return $pdf->stream('pedido_' . $pedido['id_pedido'] . '.pdf');
     }
+
+    public function updateEstado(Request $request, $id)
+{
+    $data = $request->validate([
+        'estado' => ['required', 'in:Pendiente,En Progreso,Completado'],
+    ]);
+
+    $resp = Http::put($this->apiBase . "/api/pedidos/{$id}/estado", [
+        'estado' => $data['estado'],
+    ]);
+
+    if ($resp->successful()) {
+        return response()->json(['ok' => true]);
+    }
+
+    return response()->json([
+        'ok' => false,
+        'error' => $resp->json('error') ?? 'Error al cambiar estado'
+    ], 422);
+}
+
 }

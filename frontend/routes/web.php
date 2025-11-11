@@ -86,6 +86,8 @@ Route::middleware(['auth.firebase'])->group(function () {
         'pedidos' => 'id'
     ]);
 
+    // Cambiar estado (AJAX)
+    Route::put('/pedidos/{id}/estado', [PedidoController::class, 'updateEstado'])->name('pedidos.estado');
     Route::get('/pedidos/{id}/show', [PedidoController::class, 'show'])->name('pedidos.show');
     Route::get('/pedidos/{id}/reporte', [PedidoController::class, 'reporte'])->name('pedidos.reporte');
 

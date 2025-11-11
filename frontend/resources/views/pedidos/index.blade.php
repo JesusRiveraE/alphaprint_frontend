@@ -3,25 +3,29 @@
 @section('title', 'Pedidos')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Listado de Pedidos</h1>
-        <a href="{{ route('pedidos.create') }}" class="btn btn-success">
-            <i class="fas fa-plus-circle"></i> Nuevo Pedido
-        </a>
-    </div>
+<h1 class="m-0" style="font-size:1.7rem;">
+    <i class="fas fa-box-open mr-2 brand-text"></i> Pedidos
+</h1>
 @stop
 
 @section('content')
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="card card-soft shadow-sm">
+    <div class="card-header border-brand d-flex justify-content-between align-items-center">
+        <strong class="brand-text" style="font-size:1.25rem;">Listado de Pedidos</strong>
+        <div class="ml-auto">
+            <a href="{{ route('pedidos.create') }}" class="btn btn-sm btn-brand-outline">
+                <i class="fas fa-plus mr-1"></i> Nuevo Pedido
+            </a>
         </div>
-    @endif
+    </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <table class="table table-striped table-hover align-middle">
+    <div class="card-body">
+        @if(session('success'))
+            <div class="alert alert-success mb-3">{{ session('success') }}</div>
+        @endif
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped text-sm align-middle">
                 <thead class="thead-light">
                     <tr>
                         <th>ID</th>
@@ -29,79 +33,159 @@
                         <th>Descripción</th>
                         <th>Total (Lps)</th>
                         <th>Estado</th>
-                        <th>Fecha Creación</th>
-                        <th>Fecha Entrega</th>
-                        <th class="text-center">Acciones</th>
+                        <th>Creado</th>
+                        <th>Entrega</th>
+                        <th class="text-right">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($pedidos as $pedido)
-                        <tr>
-                            <td>{{ $pedido['id_pedido'] }}</td>
-                            <td>{{ $pedido['cliente_nombre'] ?? '—' }}</td>
-                            <td>{{ $pedido['descripcion'] ?? '—' }}</td>
-                            <td>L. {{ number_format($pedido['total'] ?? 0, 2) }}</td>
-                            <td>
-                                @php
-                                    $estado = $pedido['estado'] ?? 'Pendiente';
-                                    $color = match($estado) {
-                                        'Completado' => 'bg-success',
-                                        'En Progreso' => 'bg-warning',
-                                        default => 'bg-secondary'
-                                    };
-                                @endphp
-                                <span class="badge {{ $color }}">{{ $estado }}</span>
-                            </td>
-                            <td>{{ \Carbon\Carbon::parse($pedido['fecha_creacion'])->format('d/m/Y H:i') }}</td>
-                            <td>
-                                {{ !empty($pedido['fecha_entrega'])
-                                    ? \Carbon\Carbon::parse($pedido['fecha_entrega'])->format('d/m/Y')
-                                    : '—' }}
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group" role="group">
+                @forelse($pedidos as $item)
+                    @php
+                        $estado = $item['estado'] ?? '—';
+                        $btnClass = $estado === 'Pendiente' ? 'btn-warning'
+                                  : ($estado === 'En Progreso' ? 'btn-info' : 'btn-success');
+                    @endphp
+                    <tr>
+                        <td>{{ $item['id_pedido'] }}</td>
+                        <td>{{ $item['cliente_nombre'] ?? $item['id_cliente'] }}</td>
+                        <td>{{ $item['descripcion'] ?? '—' }}</td>
+                        <td>{{ number_format($item['total'] ?? 0, 2) }}</td>
 
-                                    {{-- 👁️ Ver detalles --}}
-                                    <a href="{{ route('pedidos.show', $pedido['id_pedido']) }}"
-                                       class="btn btn-info btn-sm" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-
-                                    {{-- ✏️ Editar --}}
-                                    <a href="{{ route('pedidos.edit', $pedido['id_pedido']) }}"
-                                       class="btn btn-primary btn-sm" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-
-                                    {{-- 🧾 Reporte PDF --}}
-                                    <a href="{{ route('pedidos.reporte', $pedido['id_pedido']) }}"
-                                       target="_blank" class="btn btn-secondary btn-sm" title="Imprimir reporte">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-
-                                    {{-- 🗑️ Eliminar --}}
-                                    <form action="{{ route('pedidos.destroy', $pedido['id_pedido']) }}"
-                                          method="POST" class="d-inline"
-                                          onsubmit="return confirm('¿Seguro que deseas eliminar este pedido?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                        {{-- 🔽 Estado con dropdown para cambiar en vivo --}}
+                        <td id="estado-cell-{{ $item['id_pedido'] }}">
+                            <div class="dropdown">
+                                <button class="btn btn-xs dropdown-toggle {{ $btnClass }}" type="button" data-toggle="dropdown" aria-expanded="false">
+                                    {{ $estado }}
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right p-0">
+                                    <button class="dropdown-item status-opt" data-id="{{ $item['id_pedido'] }}" data-estado="Pendiente">
+                                        <i class="fas fa-hourglass-half text-warning mr-2"></i> Pendiente
+                                    </button>
+                                    <button class="dropdown-item status-opt" data-id="{{ $item['id_pedido'] }}" data-estado="En Progreso">
+                                        <i class="fas fa-spinner text-info mr-2"></i> En Progreso
+                                    </button>
+                                    <button class="dropdown-item status-opt" data-id="{{ $item['id_pedido'] }}" data-estado="Completado">
+                                        <i class="fas fa-check-circle text-success mr-2"></i> Completado
+                                    </button>
                                 </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                <i class="fas fa-box-open fa-2x mb-2"></i>
-                                <p class="mb-0">No hay pedidos registrados.</p>
-                            </td>
-                        </tr>
-                    @endforelse
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="badge badge-chip">
+                                {{ \Carbon\Carbon::parse($item['fecha_creacion'])->timezone('America/Tegucigalpa')->format('d/m/Y H:i:s') }}
+                            </span>
+                        </td>
+
+                        {{-- Entrega con fecha + hora si existe --}}
+                        <td>
+                            @if(!empty($item['fecha_entrega']))
+                                <span class="badge badge-chip">
+                                    {{ \Carbon\Carbon::parse($item['fecha_entrega'])->timezone('America/Tegucigalpa')->format('d/m/Y H:i:s') }}
+                                </span>
+                            @else
+                                —
+                            @endif
+                        </td>
+
+                        <td class="text-right">
+                            <a class="btn btn-xs btn-outline-secondary" href="{{ route('pedidos.show', $item['id_pedido']) }}">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a class="btn btn-xs btn-outline-primary" href="{{ route('pedidos.edit', $item['id_pedido']) }}">
+                                <i class="fas fa-edit"></i>
+                            </a>
+
+                            {{-- ✅ Eliminar seguro con formulario DELETE --}}
+                            <form action="{{ route('pedidos.destroy', $item['id_pedido']) }}" method="POST" class="d-inline delete-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-xs btn-outline-danger btn-delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+
+                            <a class="btn btn-xs btn-brand-outline" href="{{ route('pedidos.reporte', $item['id_pedido']) }}">
+                                <i class="fas fa-file-pdf"></i>
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="8" class="text-center text-muted">No hay pedidos registrados</td></tr>
+                @endforelse
                 </tbody>
             </table>
         </div>
     </div>
+</div>
+@stop
+
+@section('css')
+<style>
+:root{ --brand:#e24e60; --brand-100:#fde5e9; }
+.brand-text{ color:var(--brand); }
+.card-soft{ border:1px solid #eff1f5; border-radius:.6rem; }
+.card-soft:hover{ box-shadow:0 0 15px rgba(226,78,96,.08); }
+.border-brand{ border-left:4px solid var(--brand); background:#fff; }
+.badge-chip{ background:var(--brand-100); color:var(--brand); font-weight:600; border-radius:999px; padding:.35rem .6rem; }
+.btn-brand-outline{ border:1px solid var(--brand); color:var(--brand); background:#fff; }
+.btn-brand-outline:hover{ background:#fde5e9; color:var(--brand); }
+.dropdown-item{ font-size:.9rem; }
+</style>
+@stop
+
+@section('js')
+<script>
+(function(){
+    const csrf = '{{ csrf_token() }}';
+
+    // Cambiar estado con AJAX
+    function estadoBtnClass(estado){
+        return estado === 'Pendiente' ? 'btn-warning'
+             : (estado === 'En Progreso' ? 'btn-info' : 'btn-success');
+    }
+
+    document.querySelectorAll('.status-opt').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+            const id = btn.dataset.id;
+            const estado = btn.dataset.estado;
+            const url = "{{ route('pedidos.estado', '__ID__') }}".replace('__ID__', id);
+
+            try{
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ estado })
+                });
+                const json = await res.json();
+
+                if(json.ok){
+                    const cell = document.getElementById(`estado-cell-${id}`);
+                    const btnEl = cell.querySelector('button.dropdown-toggle');
+                    btnEl.textContent = estado;
+                    btnEl.className = `btn btn-xs dropdown-toggle ${estadoBtnClass(estado)}`;
+                }else{
+                    alert(json.error || 'No se pudo cambiar el estado.');
+                }
+            }catch(err){
+                console.error(err);
+                alert('Error de red al cambiar el estado.');
+            }
+        });
+    });
+
+    // Confirmar eliminación
+    document.querySelectorAll('.delete-form').forEach(f=>{
+        f.addEventListener('submit', (e)=>{
+            if(!confirm('¿Seguro que deseas eliminar este pedido?')) {
+                e.preventDefault();
+            }
+        });
+    });
+})();
+</script>
 @stop

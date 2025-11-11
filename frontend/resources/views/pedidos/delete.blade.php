@@ -1,49 +1,43 @@
 @extends('adminlte::page')
 
-@section('title', 'Eliminar Pedido')
+@section('title','Eliminar Pedido')
 
 @section('content_header')
-    <h1>Eliminar Pedido #{{ $pedido['id_pedido'] ?? '' }}</h1>
+<h1 class="m-0" style="font-size:1.7rem;">
+    <i class="fas fa-trash-alt mr-2 brand-text"></i> Eliminar Pedido
+</h1>
 @stop
 
 @section('content')
-    <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle"></i>
-        ¿Seguro que deseas eliminar este pedido? Esta acción no se puede deshacer.
+<div class="card card-soft shadow-sm">
+    <div class="card-header border-brand">
+        <strong class="brand-text" style="font-size:1.25rem;">Confirmar eliminación</strong>
     </div>
+    <div class="card-body">
+        <p>¿Seguro que deseas eliminar el pedido <strong>#{{ $pedido['id_pedido'] }}</strong> del cliente
+            <strong>{{ $pedido['cliente_nombre'] ?? $pedido['id_cliente'] }}</strong>?</p>
 
-    <div class="card">
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">Cliente</dt>
-                <dd class="col-sm-9">{{ $pedido['cliente_nombre'] ?? ('ID ' . ($pedido['id_cliente'] ?? '')) }}</dd>
-
-                <dt class="col-sm-3">Descripción</dt>
-                <dd class="col-sm-9">{{ $pedido['descripcion'] ?? '' }}</dd>
-
-                <dt class="col-sm-3">Total</dt>
-                <dd class="col-sm-9">L. {{ number_format($pedido['total'] ?? 0, 2) }}</dd>
-
-                <dt class="col-sm-3">Estado</dt>
-                <dd class="col-sm-9">{{ $pedido['estado'] ?? '' }}</dd>
-
-                <dt class="col-sm-3">Fecha entrega</dt>
-                <dd class="col-sm-9">{{ $pedido['fecha_entrega'] ?? '—' }}</dd>
-            </dl>
-
-            <form method="POST" action="{{ route('pedidos.destroy', $pedido['id_pedido']) }}">
-                @csrf
-                @method('DELETE')
-
-                <div class="d-flex gap-2">
-                    <a href="{{ route('pedidos.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
-                </div>
-            </form>
-        </div>
+        <form method="POST" action="{{ route('pedidos.destroy', $pedido['id_pedido']) }}">
+            @csrf
+            @method('DELETE')
+            <div class="d-flex justify-content-end">
+                <a href="{{ route('pedidos.index') }}" class="btn btn-outline-secondary mr-2">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </form>
     </div>
+</div>
+@stop
+
+@section('css')
+<style>
+:root{ --brand:#e24e60; }
+.brand-text{ color:var(--brand); }
+.card-soft{ border:1px solid #eff1f5; border-radius:.6rem; }
+.border-brand{ border-left:4px solid var(--brand); background:#fff; }
+</style>
 @stop
