@@ -45,12 +45,15 @@
 {{-- ... (auth_footer sin cambios) ... --}}
 
 @push('js')
+<!-- Cargar primero firebase.js -->
+<script type="module" src="{{ asset('js/firebase.js') }}"></script>
+
 <script type="module">
     // PASO 1: Importar las funciones que necesitamos del SDK de Firebase
     import { signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     
-    // PASO 2: Importar nuestra configuración de Firebase desde el archivo que creamos
-    import { firebaseAuth } from "{{ asset('js/firebase.js') }}";
+    // PASO 2: Usar la instancia global de Firebase inicializada desde firebase.js
+    const firebaseAuth = window.firebaseAuth;
 
     // PASO 3: Lógica de la página
     document.addEventListener('DOMContentLoaded', () => {

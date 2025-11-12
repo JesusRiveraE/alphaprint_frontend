@@ -1,25 +1,31 @@
+// backend/routes/empleados.js
 const express = require("express");
 const router = express.Router();
-const ctrl = require("../controllers/empleadosController"); // Tu controlador
 
-// 🔰 1. Importamos el "guardia" de seguridad
-const { verifyTokenAndAdmin } = require('../middlewares/authMiddleware');
+const ctrl = require("../controllers/empleadosController");
+// 🔐 Middlewares de autenticación y autorización
+const { verifyToken, verifyTokenAndAdmin } = require("../middlewares/authMiddleware");
 
-// --- Rutas Protegidas (Solo para Administradores) ---
-// Aplicamos 'verifyTokenAndAdmin' a todas las rutas que modifican datos.
+/**
+ * Aplica verificación de sesión Firebase a TODO el router.
+ * - verifyToken valida el ID token (incluye detección de token revocado/expirado).
+ * - Luego se pueden añadir restricciones adicionales por ruta.
+ */
+router.use(verifyToken);
 
-// POST /api/empleados (Crear)
-router.post("/", verifyTokenAndAdmin, ctrl.create);
-
-// PUT /api/empleados/:id (Actualizar)
-router.put("/:id", verifyTokenAndAdmin, ctrl.update);
-
-// DELETE /api/empleados/:id (Eliminar)
-router.delete("/:id", verifyTokenAndAdmin, ctrl.remove);
-
-// --- Rutas Públicas ---
-// Dejamos que 'list' y 'getById' sean públicas para que todos las vean.
+/* =========================
+ *  Rutas de solo lectura
+ *  (disponibles para cualquier usuario autenticado)
+ * ========================= */
 router.get("/", ctrl.list);
 router.get("/:id", ctrl.getById);
+
+/* =========================
+ *  Rutas de modificación
+ *  (solo para Administradores)
+ * ========================= */
+router.post("/", verifyTokenAndAdmin, ctrl.create);
+router.put("/:id", verifyTokenAndAdmin, ctrl.update);
+router.delete("/:id", verifyTokenAndAdmin, ctrl.remove);
 
 module.exports = router;

@@ -307,20 +307,32 @@ return [
             ],
         ],
         'InactivityTimer' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => true,
-                    'location' => 'js/firebase.js',
-                ],
-                [
-                    'type' => 'js',
-                    'asset' => true,
-                    'location' => 'js/inactivity-timer.js',
-                ],
+    'active' => true,
+    'files' => [
+        // Primero Firebase
+        [
+            'type' => 'js', 
+            'asset' => true,
+            'location' => 'js/firebase.js',
+            'attributes' => [
+                'type' => 'module', 
+                'async' => true,
+                'defer' => true,
             ],
         ],
+        // Luego el temporizador
+        [
+            'type' => 'js', 
+            'asset' => true,
+            'location' => 'js/inactivity-timer.js',
+            'attributes' => [
+                'type' => 'module', 
+                'async' => true,
+                'defer' => true,
+            ],
+        ],
+    ],
+],
     ],
 
     /*

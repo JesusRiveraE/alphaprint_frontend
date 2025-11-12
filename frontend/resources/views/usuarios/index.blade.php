@@ -27,42 +27,19 @@
                 <th>Acciones</th>
             </tr>
         </thead>
-        <tbody>
+        {{-- 🔰 1. SE AÑADIÓ EL ID AQUÍ 🔰 --}}
+        <tbody id="tabla-usuarios-body">
+            {{-- (El controlador ahora pasa [], así que esto se ignora) --}}
             @if(isset($usuarios) && count($usuarios) > 0)
-                @foreach($usuarios as $item)
-                    <tr id="fila-usuario-{{ $item['id_usuario'] ?? '' }}">
-                        <td>{{ $item['id_usuario'] ?? '' }}</td>
-                        <td>{{ $item['nombre_usuario'] ?? '' }}</td>
-                        <td>{{ $item['correo'] ?? '' }}</td>
-                        <td>{{ $item['rol'] ?? '' }}</td>
-                        <td>{{ $item['activo'] ? 'Sí' : 'No' }}</td>
-                        <td>{{ $item['fecha_creacion'] ?? '' }}</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm btn-actualizar-usuario" 
-                                    data-id="{{ $item['id_usuario'] }}"
-                                    data-nombre="{{ $item['nombre_usuario'] }}"
-                                    data-correo="{{ $item['correo'] }}"
-                                    data-rol="{{ $item['rol'] }}"
-                                    data-activo="{{ $item['activo'] }}"
-                                    data-toggle="modal" 
-                                    data-target="#modalActualizarUsuario">
-                                Actualizar
-                            </button>
-                            <button class="btn btn-danger btn-sm btn-eliminar-usuario" onclick="eliminarUsuario({{ $item['id_usuario'] ?? '' }})">
-                                Eliminar
-                            </button>
-                        </td>
-                    </tr>
-                @endforeach
             @else
                 <tr>
-                    <td colspan="7" class="text-center">No hay usuarios para mostrar.</td>
+                    <td colspan="7" class="text-center">Cargando usuarios...</td>
                 </tr>
             @endif
         </tbody>
     </table>
 
-    {{-- 🔰 MODAL PARA CREAR USUARIO (CONTENIDO RESTAURADO) --}}
+    {{-- 🔰 MODAL PARA CREAR USUARIO (CON VALIDACIÓN MEJORADA) --}}
     <div class="modal fade" id="modalCrearUsuario" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -76,7 +53,11 @@
                     <form id="formCrearUsuario">
                         <div class="form-group">
                             <label for="nombre-crear">Nombre de Usuario</label>
-                            <input type="text" class="form-control" id="nombre-crear" required>
+                            <input type="text" class="form-control" id="nombre-crear" required 
+                                   minlength="4" maxlength="30">
+                            <small class="form-text text-muted">
+                                Debe tener entre 4 y 30 caracteres.
+                            </small>
                         </div>
                         <div class="form-group">
                             <label for="email-crear">Correo Electrónico</label>
@@ -84,7 +65,11 @@
                         </div>
                         <div class="form-group">
                             <label for="password-crear">Contraseña</label>
-                            <input type="password" class="form-control" id="password-crear" required>
+                            <input type="password" class="form-control" id="password-crear" required 
+                                   minlength="6">
+                            <small class="form-text text-muted">
+                                Debe tener al menos 6 caracteres.
+                            </small>
                         </div>
                         <div class="form-group">
                             <label for="rol-crear">Rol</label>
@@ -103,7 +88,7 @@
         </div>
     </div>
 
-    {{-- Modal para Actualizar Usuario (contenido completo) --}}
+    {{-- Modal para Actualizar Usuario (CON VALIDACIÓN MEJORADA) --}}
     <div class="modal fade" id="modalActualizarUsuario" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -118,7 +103,11 @@
                         <input type="hidden" id="id-actualizar">
                         <div class="form-group">
                             <label for="nombre-actualizar">Nombre de Usuario</label>
-                            <input type="text" class="form-control" id="nombre-actualizar" required>
+                            <input type="text" class="form-control" id="nombre-actualizar" required 
+                                   minlength="4" maxlength="30">
+                            <small class="form-text text-muted">
+                                Debe tener entre 4 y 30 caracteres.
+                            </small>
                         </div>
                         <div class="form-group">
                             <label for="email-actualizar">Correo Electrónico</label>
@@ -126,7 +115,11 @@
                         </div>
                          <div class="form-group">
                             <label for="password-actualizar">Nueva Contraseña (dejar en blanco para no cambiar)</label>
-                            <input type="password" class="form-control" id="password-actualizar" placeholder="********">
+                            <input type="password" class="form-control" id="password-actualizar" placeholder="********" 
+                                   minlength="6">
+                            <small class="form-text text-muted">
+                                Debe tener al menos 6 caracteres (si se cambia).
+                            </small>
                         </div>
                         <div class="form-group">
                             <label for="rol-actualizar">Rol</label>
@@ -155,24 +148,100 @@
 
 @push('js')
 <script type="module">
-    // El script completo y final que ya teníamos es correcto y no necesita cambios.
-    // Lo incluyo aquí para que tengas el archivo 100% completo.
+    // Importamos firebaseAuth (lo necesitas para obtener el token)
     import { firebaseAuth } from "{{ asset('js/firebase.js') }}";
 
+    // 🔰🔰 2. SE AÑADIÓ ESTA FUNCIÓN (LA QUE TE FALTABA) 🔰🔰
+    /**
+     * Carga los usuarios desde la API y los dibuja en la tabla.
+     */
+    async function cargarUsuarios() {
+        // Busca el ID que acabamos de añadir al <tbody>
+        const tbody = document.getElementById('tabla-usuarios-body'); 
+        if (!tbody) return;
+        
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Cargando usuarios...</td></tr>';
+        
+        try {
+            await window.authReady; 
+            
+            // Usa el fetch autorizado (que ya incluye el token)
+            const response = await window.authorizedFetch("http://localhost:3000/api/usuarios");
+            
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || 'No se pudo cargar la lista de usuarios.');
+            }
+            
+            const usuarios = await response.json();
+            
+            if (!usuarios || usuarios.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay usuarios para mostrar.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = ''; // Limpiar el "Cargando..."
+            const userRole = localStorage.getItem('userRole');
+
+            usuarios.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.id = `fila-usuario-${item.id_usuario}`;
+                
+                const estado = item.activo ? 'Sí' : 'No';
+                const fecha = item.fecha_creacion ? new Date(item.fecha_creacion).toLocaleDateString() : '';
+                
+                let botones = '';
+                // Solo muestra botones de acción si eres Admin
+                if (userRole === 'Admin') {
+                    botones = `
+                        <button class="btn btn-warning btn-sm btn-actualizar-usuario" 
+                                data-id="${item.id_usuario}"
+                                data-nombre="${item.nombre_usuario}"
+                                data-correo="${item.correo}"
+                                data-rol="${item.rol}"
+                                data-activo="${item.activo}"
+                                data-toggle="modal" 
+                                data-target="#modalActualizarUsuario">
+                            Actualizar
+                        </button>
+                        <button class="btn btn-danger btn-sm btn-eliminar-usuario" onclick="eliminarUsuario(${item.id_usuario})">
+                            Eliminar
+                        </button>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td>${item.id_usuario ?? ''}</td>
+                    <td>${item.nombre_usuario ?? ''}</td>
+                    <td>${item.correo ?? ''}</td>
+                    <td>${item.rol ?? ''}</td>
+                    <td><span class="badge ${item.activo ? 'badge-success' : 'badge-danger'}">${estado}</span></td>
+                    <td>${fecha}</td>
+                    <td>${botones}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+        } catch (error) {
+            console.error("Error cargando usuarios:", error);
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error al cargar usuarios: ${error.message}</td></tr>`;
+        }
+    }
+
+
     document.addEventListener('DOMContentLoaded', () => {
+
+        // 🔰 EJECUTA LA FUNCIÓN DE CARGA
+        cargarUsuarios();
 
         // --- LÓGICA DE ROLES ---
         const userRole = localStorage.getItem('userRole');
         if (userRole === 'Admin') {
             document.getElementById('btnCrearUsuario').style.display = 'block';
         }
-        if (userRole !== 'Admin') {
-            document.querySelectorAll('.btn-eliminar-usuario, .btn-actualizar-usuario').forEach(btn => {
-                btn.style.display = 'none';
-            });
-        }
+        // (La lógica de ocultar botones ya la hace cargarUsuarios)
 
-        // --- LÓGICA PARA CREAR USUARIO ---
+        // --- LÓGICA PARA CREAR USUARIO (CON MANEJO DE ERROR MEJORADO) ---
         const formCrearUsuario = document.getElementById('formCrearUsuario');
         if(formCrearUsuario) {
             formCrearUsuario.addEventListener('submit', async (e) => {
@@ -181,27 +250,36 @@
                 const email = document.getElementById('email-crear').value;
                 const password = document.getElementById('password-crear').value;
                 const rol = document.getElementById('rol-crear').value;
+                
                 try {
-                    const adminActual = firebaseAuth.currentUser;
-                    if (!adminActual) return alert('Debes iniciar sesión como administrador.');
-                    const token = await adminActual.getIdToken();
-                    const response = await fetch("http://localhost:3000/api/usuarios", {
+                    // Usamos window.authorizedFetch (ya tiene el token)
+                    const response = await window.authorizedFetch("http://localhost:3000/api/usuarios", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ nombreUsuario, email, password, rol })
                     });
-                    const data = await response.json();
-                    if (!response.ok) throw new Error(data.details || "Error del servidor.");
+                    
+                    const data = await response.json(); 
+
+                    if (!response.ok) {
+                        let errorMsg = data.msg || "Error del servidor.";
+                        if (data.errores && Array.isArray(data.errores)) {
+                            errorMsg += "\n\nDetalles:\n" + data.errores.map(e => `• ${e.msg}`).join("\n");
+                        }
+                        throw new Error(errorMsg);
+                    }
+                    
                     alert("✅ ¡Usuario creado exitosamente!");
                     $('#modalCrearUsuario').modal('hide');
-                    location.reload();
+                    
+                    cargarUsuarios(); // Recarga solo la tabla
                 } catch (err) {
-                    alert("❌ Error al crear el usuario: ".concat(err.message));
+                    alert("❌ Error al crear el usuario: \n\n".concat(err.message));
                 }
             });
         }
 
-        // --- LÓGICA PARA ACTUALIZAR USUARIO ---
+        // --- LÓGICA PARA ACTUALIZAR USUARIO (CON MANEJO DE ERROR MEJORADO) ---
         $('#modalActualizarUsuario').on('show.bs.modal', function (event) {
             const button = $(event.relatedTarget);
             document.getElementById('id-actualizar').value = button.data('id');
@@ -225,21 +303,30 @@
                 };
                 const password = document.getElementById('password-actualizar').value;
                 if (password) updateData.password = password;
+                
                 try {
-                    const adminActual = firebaseAuth.currentUser;
-                    const token = await adminActual.getIdToken();
-                    const response = await fetch(`http://localhost:3000/api/usuarios/${id}`, {
+                    const response = await window.authorizedFetch(`http://localhost:3000/api/usuarios/${id}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(updateData)
                     });
+                    
                     const data = await response.json();
-                    if (!response.ok) throw new Error(data.details || 'Error del servidor');
+                    
+                    if (!response.ok) {
+                        let errorMsg = data.msg || "Error del servidor.";
+                        if (data.errores && Array.isArray(data.errores)) {
+                            errorMsg += "\n\nDetalles:\n" + data.errores.map(e => `• ${e.msg}`).join("\n");
+                        }
+                        throw new Error(errorMsg);
+                    }
+                    
                     alert('✅ Usuario actualizado con éxito');
                     $('#modalActualizarUsuario').modal('hide');
-                    location.reload();
+                    
+                    cargarUsuarios(); // Recarga solo la tabla
                 } catch (err) {
-                    alert('❌ Error al actualizar el usuario: '.concat(err.message));
+                    alert('❌ Error al actualizar el usuario: \n\n'.concat(err.message));
                 }
             });
         }
@@ -249,17 +336,15 @@
     window.eliminarUsuario = async function(idUsuario) {
         if (!confirm(`¿Estás seguro de que quieres eliminar al usuario con ID: ${idUsuario}?`)) return;
         try {
-            const adminActual = firebaseAuth.currentUser;
-            if (!adminActual) return alert('Debes iniciar sesión como administrador.');
-            const token = await adminActual.getIdToken();
-            const response = await fetch(`http://localhost:3000/api/usuarios/${idUsuario}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+            const response = await window.authorizedFetch(`http://localhost:3000/api/usuarios/${idUsuario}`, {
+                method: 'DELETE'
             });
+
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'No se pudo completar la eliminación.');
+            
             alert(data.message);
-            document.getElementById(`fila-usuario-${idUsuario}`).remove();
+            cargarUsuarios(); // Recarga solo la tabla
         } catch (error) {
             console.error('Error al eliminar usuario:', error);
             alert(`Error: ${error.message}`);

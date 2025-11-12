@@ -1,14 +1,14 @@
 <?php
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Http;
+// ⛔️ No se necesita 'use Illuminate\Support\Facades\Http;'
 
 class UsuarioController extends Controller
 {
     public function index()
     {
-        $response = Http::get('http://localhost:3000/api/usuarios');
-        $usuarios = $response->json() ?? [];
+        // ✅ Solo pasa un array vacío. Esto arregla el crash.
+        $usuarios = []; 
         return view('usuarios.index', compact('usuarios'));
     }
 }

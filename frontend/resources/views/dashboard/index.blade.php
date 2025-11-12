@@ -187,7 +187,7 @@ new Chart(document.getElementById('pedidosChart'), {
     options: { 
         responsive: true, 
         plugins: { legend: { position: 'bottom' } },
-        cutout: '75%' // 🔹 hace el donut más delgado y elegante
+        cutout: '75%'
     }
 });
 
