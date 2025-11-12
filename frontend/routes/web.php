@@ -14,7 +14,8 @@ use App\Http\Controllers\{
     BitacoraController,
     NotificacionController,
     ArchivoController,
-    HistorialController
+    HistorialController,
+    CalendarioController
 };
 
 /*
@@ -26,6 +27,10 @@ use App\Http\Controllers\{
 | Si no, muestra la pantalla de login.
 |
 */
+
+Route::get('/calendario', [\App\Http\Controllers\CalendarioController::class, 'index'])
+    ->name('calendario.index')
+    ->middleware('auth.firebase');
 
 Route::get('/', function () {
     if (Session::has('firebase_user')) {
