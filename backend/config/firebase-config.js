@@ -26,6 +26,7 @@ try {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       projectId: serviceAccount.project_id,
+      databaseURL: "https://alphaprint-79f90-default-rtdb.firebaseio.com"
     });
     console.log('✅ Firebase Admin SDK inicializado.');
   }
