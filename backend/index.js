@@ -12,7 +12,7 @@ app.use(express.json());
 // Configuración CORS: permitir solicitudes desde Laravel (localhost y 127.0.0.1)
 app.use(
   cors({
-    origin: ["http://localhost:8000", "http://127.0.0.1:8000"], // dominios de Laravel
+    origin: ["http://localhost:8000", "http://127.0.0.1:8000"], // dominios del frontend Laravel
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -22,6 +22,7 @@ app.use(
 // ===============================
 // 📦 RUTAS PRINCIPALES (API)
 // ===============================
+// ✅ Asegúrate que cada archivo existe en /routes/
 app.use("/api/usuarios", require("./routes/usuarios"));
 app.use("/api/empleados", require("./routes/empleados"));
 app.use("/api/clientes", require("./routes/clientes"));

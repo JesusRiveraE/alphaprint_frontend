@@ -70,20 +70,19 @@ Route::post('/firebase/login', function (Request $request) {
 |
 */
 
- /*
-    |--------------------------------------------------------------------------
-    | LOGOUT
-    |--------------------------------------------------------------------------
-    */
+/*
+|--------------------------------------------------------------------------
+| LOGOUT
+|--------------------------------------------------------------------------
+*/
+Route::get('/logout', function () {
+    // Limpia datos asociados a la sesión
+    Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole']);
+    Session::invalidate();
+    Session::regenerateToken();
 
-    Route::get('/logout', function () {
-        // Limpia datos asociados a la sesión
-        Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole']);
-        Session::invalidate();
-        Session::regenerateToken();
-
-        return redirect()->route('login')->with('status', 'Sesión cerrada correctamente.');
-    })->name('logout')->middleware('web');
+    return redirect()->route('login')->with('status', 'Sesión cerrada correctamente.');
+})->name('logout')->middleware('web');
 
 Route::middleware(['auth.firebase'])->group(function () {
 
@@ -146,7 +145,6 @@ Route::middleware(['auth.firebase'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
-    Route::get('/bitacora/reporte', [BitacoraController::class, 'reporte'])->name('bitacora.reporte');
 
     /*
     |--------------------------------------------------------------------------
