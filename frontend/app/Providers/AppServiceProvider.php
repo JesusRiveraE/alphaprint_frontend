@@ -23,10 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // 🔹 Compositor global: Notificaciones y Entregas próximas
+        // 🔹 Compositor global: Notificaciones (solo no leídas) y Entregas próximas
         View::composer('*', function ($view) {
             // -------------------------------
-            // 🔸 NOTIFICACIONES
+            // 🔸 NOTIFICACIONES (solo no leídas para el dropdown)
             // -------------------------------
             try {
                 $respNoti = Http::get('http://localhost:3000/api/notificaciones');
@@ -34,6 +34,18 @@ class AppServiceProvider extends ServiceProvider
             } catch (\Throwable $e) {
                 $notificaciones = [];
             }
+
+            // Filtrar no leídas
+            $noLeidasAll = array_values(array_filter($notificaciones, function ($n) {
+                // Considera como "no leída" cuando 'leido' esté vacío, null, false o 0
+                return empty($n['leido']);
+            }));
+
+            // Máximo 5 en el dropdown de la campana
+            $navbar_notificaciones = array_slice($noLeidasAll, 0, 5);
+
+            // Conteo total de no leídas para el badge
+            $navbar_notificaciones_badge = count($noLeidasAll);
 
             // -------------------------------
             // 🔸 CALENDARIO (Próximas entregas)
@@ -46,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
                     $pedidos = $respPedidos->json() ?? [];
                     $today = Carbon::today();
 
-                    // Filtrar pedidos con fecha_entrega >= hoy
+                    // Filtrar pedidos con fecha_entrega válida y >= hoy
                     $entregas = collect($pedidos)
                         ->filter(function ($p) use ($today) {
                             if (empty($p['fecha_entrega'])) return false;
@@ -68,7 +80,13 @@ class AppServiceProvider extends ServiceProvider
 
             // Pasar a todas las vistas
             $view->with([
-                'navbar_notificaciones' => $notificaciones,
+                // 🔔 Solo no leídas (máx 5) para listar en el dropdown
+                'navbar_notificaciones' => $navbar_notificaciones,
+
+                // 🔢 Conteo real de no leídas (para el badge)
+                'navbar_notificaciones_badge' => $navbar_notificaciones_badge,
+
+                // 📅 Próximas entregas
                 'navbar_entregas' => $entregas,
             ]);
         });

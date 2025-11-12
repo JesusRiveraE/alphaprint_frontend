@@ -18,36 +18,49 @@
             </a>
         </li>
 
-        <!-- Notificaciones -->
-        <li class="nav-item dropdown">
-            <a class="nav-link" data-toggle="dropdown" href="#">
-                <i class="fas fa-bell"></i>
-                @if(count($navbar_notificaciones ?? []) > 0)
-                    <span class="badge badge-warning navbar-badge">{{ count($navbar_notificaciones) }}</span>
-                @endif
+<!-- 🔔 Notificaciones -->
+<li class="nav-item dropdown">
+    <a class="nav-link" data-toggle="dropdown" href="#" title="Notificaciones">
+        <i class="fas fa-bell"></i>
+
+        @php $pendientes = $navbar_notificaciones_badge ?? 0; @endphp
+        @if($pendientes > 0)
+            <span class="badge badge-danger navbar-badge">{{ $pendientes }}</span>
+        @endif
+    </a>
+
+    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+        <span class="dropdown-item dropdown-header">
+            {{ $pendientes }} Notificación{{ $pendientes !== 1 ? 'es' : '' }} sin leer
+        </span>
+
+        @foreach($navbar_notificaciones ?? [] as $noti)
+            <div class="dropdown-divider"></div>
+            <a href="{{ url('notificaciones') }}" class="dropdown-item d-flex align-items-start">
+                <i class="fas fa-envelope mr-2 {{ empty($noti['leido']) ? 'text-danger' : 'text-muted' }}"></i>
+                <div class="flex-fill">
+                    <div>{{ $noti['mensaje'] ?? 'Nueva notificación' }}</div>
+                    <div class="small text-muted">
+                        {{ isset($noti['fecha']) ? \Carbon\Carbon::parse($noti['fecha'])->diffForHumans() : '' }}
+                    </div>
+                </div>
             </a>
-            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <span class="dropdown-item dropdown-header">
-                    {{ count($navbar_notificaciones ?? []) }} Notificaciones
-                </span>
+        @endforeach
 
-                @foreach(array_slice($navbar_notificaciones ?? [], 0, 5) as $noti)
-                    <div class="dropdown-divider"></div>
-                    <a href="{{ url('notificaciones') }}" class="dropdown-item">
-                        <i class="fas fa-envelope mr-2"></i>
-                        {{ $noti['mensaje'] ?? 'Nueva notificación' }}
-                        <span class="float-right text-muted text-sm">
-                            {{ isset($noti['fecha']) ? \Carbon\Carbon::parse($noti['fecha'])->diffForHumans() : '' }}
-                        </span>
-                    </a>
-                @endforeach
-
-                <div class="dropdown-divider"></div>
-                <a href="{{ url('notificaciones') }}" class="dropdown-item dropdown-footer">
-                    Ver todas
-                </a>
+        @if(($navbar_notificaciones_badge ?? 0) === 0)
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item text-center text-muted small py-3">
+                Sin notificaciones nuevas
             </div>
-        </li>
+        @endif
+
+        <div class="dropdown-divider"></div>
+        <a href="{{ url('notificaciones') }}" class="dropdown-item dropdown-footer">
+            Ver todas las notificaciones
+        </a>
+    </div>
+</li>
+
 
         <!-- 📅 CALENDARIO: Próximas entregas -->
         <li class="nav-item dropdown">
