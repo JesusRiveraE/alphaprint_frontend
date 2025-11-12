@@ -37,7 +37,7 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'logo' => '<b>Alpha</b>Print',
+    'logo' => '<b style="color: #fff;">Alpha</b><span style="color: #fff;">Print</span>',
     'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_alt' => 'Alpha Print Logo',
@@ -193,14 +193,14 @@ return [
             'icon' => 'fas fa-folder-open',
         ],
 
-        // 📅 Calendario (NUEVO)
+        // 📅 Calendario
         [
             'text' => 'Calendario',
-            'url'  => 'calendario', // ruta: /calendario
+            'url'  => 'calendario',
             'icon' => 'fas fa-calendar-alt',
         ],
 
-        // Historial de Estados de Pedido
+        // Historial de Estados
         [
             'text' => 'Historial de Pedidos',
             'url'  => 'historial',
@@ -309,13 +309,11 @@ return [
         'InactivityTimer' => [
             'active' => true,
             'files' => [
-                // Primero Firebase
                 [
                     'type' => 'js',
                     'asset' => true,
                     'location' => 'js/firebase.js',
                 ],
-                // Luego el temporizador
                 [
                     'type' => 'js',
                     'asset' => true,
