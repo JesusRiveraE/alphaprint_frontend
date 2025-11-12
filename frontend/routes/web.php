@@ -167,6 +167,9 @@ Route::middleware(['auth.firebase'])->group(function () {
     Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
     Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
 
+    // ➕ Ruta añadida: marcar notificación como leída (AJAX)
+    Route::put('/notificaciones/{id}/leido', [NotificacionController::class, 'markAsRead'])->name('notificaciones.leer');
+
     /*
     |--------------------------------------------------------------------------
     | MÓDULO: HISTORIAL DE ESTADO DE PEDIDOS
@@ -175,6 +178,4 @@ Route::middleware(['auth.firebase'])->group(function () {
     Route::get('/historial', [HistorialController::class, 'index'])->name('historial.index');
     Route::get('/historial/{id_pedido}', [HistorialController::class, 'show'])->name('historial.show');
 
-   
-    
 });
