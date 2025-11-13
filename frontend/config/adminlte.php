@@ -98,7 +98,7 @@ return [
 
     'layout_topnav' => null,
     'layout_boxed' => null,
-    'layout_fixed_sidebar' => null,
+    'layout_fixed_sidebar' => true,
     'layout_fixed_navbar' => null,
     'layout_fixed_footer' => null,
     'layout_dark_mode' => null,
@@ -307,32 +307,32 @@ return [
             ],
         ],
         'InactivityTimer' => [
-    'active' => true,
-    'files' => [
-        // Primero Firebase
-        [
-            'type' => 'js', 
-            'asset' => true,
-            'location' => 'js/firebase.js',
-            'attributes' => [
-                'type' => 'module', 
-                'async' => true,
-                'defer' => true,
+            'active' => true,
+            'files' => [
+                // Primero Firebase
+                [
+                    'type' => 'js', 
+                    'asset' => true,
+                    'location' => 'js/firebase.js',
+                    'attributes' => [
+                        'type' => 'module', 
+                        'async' => true,
+                        'defer' => true,
+                    ],
+                ],
+                // Luego el temporizador
+                [
+                    'type' => 'js', 
+                    'asset' => true,
+                    'location' => 'js/inactivity-timer.js',
+                    'attributes' => [
+                        'type' => 'module', 
+                        'async' => true,
+                        'defer' => true,
+                    ],
+                ],
             ],
         ],
-        // Luego el temporizador
-        [
-            'type' => 'js', 
-            'asset' => true,
-            'location' => 'js/inactivity-timer.js',
-            'attributes' => [
-                'type' => 'module', 
-                'async' => true,
-                'defer' => true,
-            ],
-        ],
-    ],
-],
     ],
 
     /*

@@ -28,7 +28,7 @@ use App\Http\Controllers\{
 |
 */
 
-Route::get('/calendario', [\App\Http\Controllers\CalendarioController::class, 'index'])
+Route::get('/calendario', [CalendarioController::class, 'index'])
     ->name('calendario.index')
     ->middleware('auth.firebase');
 
@@ -61,14 +61,20 @@ Route::post('/firebase/login', function (Request $request) {
     return response()->json(['ok' => true]);
 })->name('firebase.login');
 
+
 /*
 |--------------------------------------------------------------------------
-| Rutas Protegidas (Firebase Middleware)
+| RUTA DE CIERRE DE SESIÓN FORZADO (para cuando Firebase cierra sesión)
 |--------------------------------------------------------------------------
-|
-| Todas estas rutas requieren sesión activa de Firebase.
-|
 */
+Route::get('/force-logout', function () {
+    Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole']);
+    Session::invalidate();
+    Session::regenerateToken();
+
+    return redirect('/login?reason=forced-logout');
+})->name('force.logout');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -84,10 +90,43 @@ Route::get('/logout', function () {
     return redirect()->route('login')->with('status', 'Sesión cerrada correctamente.');
 })->name('logout')->middleware('web');
 
+
+/*
+|--------------------------------------------------------------------------
+| Rutas Protegidas (Firebase Middleware)
+|--------------------------------------------------------------------------
+|
+| Todas estas rutas requieren sesión activa de Firebase.
+|
+*/
 Route::middleware(['auth.firebase'])->group(function () {
 
     // Dashboard principal
     Route::get('/home', [DashboardController::class, 'index'])->name('dashboard');
+
+
+    //RUTAS USUARIOS
+    Route::get('/usuarios',            [UsuarioController::class, 'index'])->name('usuarios.index');
+    Route::get('/usuarios/create',     [UsuarioController::class, 'create'])->name('usuarios.create');
+    Route::get('/usuarios/{id}/edit',  [UsuarioController::class, 'edit'])->name('usuarios.edit');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MÓDULO: EMPLEADOS
+    |--------------------------------------------------------------------------
+    | (tu cambio: CRUD completo de empleados)
+    */
+    Route::resource('empleados', EmpleadoController::class)->names([
+        'index'   => 'empleados.index',
+        'create'  => 'empleados.create',
+        'store'   => 'empleados.store',
+        'edit'    => 'empleados.edit',
+        'update'  => 'empleados.update',
+        'destroy' => 'empleados.destroy',
+    ])->parameters([
+        'empleados' => 'id',
+    ]);
 
     /*
     |--------------------------------------------------------------------------
@@ -107,8 +146,8 @@ Route::middleware(['auth.firebase'])->group(function () {
 
     // Cambiar estado (AJAX)
     Route::put('/pedidos/{id}/estado', [PedidoController::class, 'updateEstado'])->name('pedidos.estado');
-    Route::get('/pedidos/{id}/show', [PedidoController::class, 'show'])->name('pedidos.show');
-    Route::get('/pedidos/{id}/reporte', [PedidoController::class, 'reporte'])->name('pedidos.reporte');
+    Route::get('/pedidos/{id}/show',   [PedidoController::class, 'show'])->name('pedidos.show');
+    Route::get('/pedidos/{id}/reporte',[PedidoController::class, 'reporte'])->name('pedidos.reporte');
 
     /*
     |--------------------------------------------------------------------------
@@ -126,7 +165,7 @@ Route::middleware(['auth.firebase'])->group(function () {
         'clientes' => 'id'
     ]);
 
-    Route::get('/clientes/{id}/show', [ClienteController::class, 'show'])->name('clientes.show');
+    Route::get('/clientes/{id}/show',    [ClienteController::class, 'show'])->name('clientes.show');
     Route::get('/clientes/{id}/reporte', [ClienteController::class, 'reporte'])->name('clientes.reporte');
 
     /*
@@ -134,9 +173,9 @@ Route::middleware(['auth.firebase'])->group(function () {
     | MÓDULO: VALORACIONES
     |--------------------------------------------------------------------------
     */
-    Route::get('/valoraciones', [ValoracionController::class, 'index'])->name('valoraciones.index');
-    Route::get('/valoraciones/create', [ValoracionController::class, 'create'])->name('valoraciones.create');
-    Route::post('/valoraciones/store', [ValoracionController::class, 'store'])->name('valoraciones.store');
+    Route::get('/valoraciones',         [ValoracionController::class, 'index'])->name('valoraciones.index');
+    Route::get('/valoraciones/create',  [ValoracionController::class, 'create'])->name('valoraciones.create');
+    Route::post('/valoraciones/store',  [ValoracionController::class, 'store'])->name('valoraciones.store');
     Route::get('/valoraciones/reporte', [ValoracionController::class, 'reporte'])->name('valoraciones.reporte');
 
     /*
@@ -152,9 +191,9 @@ Route::middleware(['auth.firebase'])->group(function () {
     |--------------------------------------------------------------------------
     | Permite listar, crear y registrar archivos vinculados a pedidos.
     */
-    Route::get('/archivos', [ArchivoController::class, 'index'])->name('archivos.index');
+    Route::get('/archivos',       [ArchivoController::class, 'index'])->name('archivos.index');
     Route::get('/archivos/crear', [ArchivoController::class, 'create'])->name('archivos.create');
-    Route::post('/archivos', [ArchivoController::class, 'store'])->name('archivos.store');
+    Route::post('/archivos',      [ArchivoController::class, 'store'])->name('archivos.store');
 
     /*
     |--------------------------------------------------------------------------
@@ -162,23 +201,24 @@ Route::middleware(['auth.firebase'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
-    Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
+    // Ojo: ya NO hay Route::get('/empleados'...), lo sustituye el resource de arriba.
     Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
 
     Route::get('/perfil', [UsuarioController::class, 'perfil'])->name('perfil');
 
+    // ➕ Notificaciones: marcar una y marcar todas (se mantiene lo de tu compañero + lo tuyo)
+    Route::put('/notificaciones/{id}/leido', [NotificacionController::class, 'markAsRead'])
+        ->name('notificaciones.leer');
 
-    // ➕ Ruta añadida: marcar notificación como leída (AJAX)
-    Route::put('/notificaciones/{id}/leido', [NotificacionController::class, 'markAsRead'])->name('notificaciones.leer');
     Route::post('/notificaciones/marcar-todas', [NotificacionController::class, 'markAllAsRead'])
-    ->name('notificaciones.marcarTodas');
+        ->name('notificaciones.marcarTodas');
 
     /*
     |--------------------------------------------------------------------------
     | MÓDULO: HISTORIAL DE ESTADO DE PEDIDOS
     |--------------------------------------------------------------------------
     */
-    Route::get('/historial', [HistorialController::class, 'index'])->name('historial.index');
+    Route::get('/historial',             [HistorialController::class, 'index'])->name('historial.index');
     Route::get('/historial/{id_pedido}', [HistorialController::class, 'show'])->name('historial.show');
 
 });

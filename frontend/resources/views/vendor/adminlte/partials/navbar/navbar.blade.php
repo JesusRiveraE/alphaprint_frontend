@@ -94,8 +94,8 @@
                     @php
                         $fecha = !empty($it['fecha_entrega']) ? Carbon::parse($it['fecha_entrega']) : null;
                         $isToday = $fecha && $fecha->isSameDay($hoy);
-                        $badgeClass = 'badge-success'; // futuro
-                        if ($isToday) $badgeClass = 'badge-warning'; // hoy
+                        $badgeClass = 'badge-success';
+                        if ($isToday) $badgeClass = 'badge-warning';
                     @endphp
 
                     <a href="{{ route('pedidos.show', ['id' => $it['id_pedido'] ?? 0]) }}" class="dropdown-item">
@@ -125,8 +125,14 @@
                     <div class="dropdown-divider m-0"></div>
                 @endforelse
 
-                <a href="{{ route('pedidos.index') }}" class="dropdown-item dropdown-footer text-center">
-                    Ver todos los pedidos
+                <!-- 📦 BOTÓN ROJO – VER PEDIDOS -->
+                <a href="{{ route('pedidos.index') }}" class="dropdown-item dropdown-footer text-center btn-cal rojo">
+                    <i class="fas fa-box mr-2"></i> Ver todos los pedidos
+                </a>
+
+                <!-- 📅 BOTÓN ROJO – VER CALENDARIO -->
+                <a href="{{ route('calendario.index') }}" class="dropdown-item dropdown-footer text-center btn-cal rojo">
+                    <i class="fas fa-calendar-alt mr-2"></i> Ver Calendario
                 </a>
             </div>
         </li>
@@ -140,7 +146,6 @@
                 </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <!-- Encabezado -->
                 <li class="user-header bg-primary text-center">
                     <i class="fas fa-user-circle fa-3x mb-2"></i>
                     <p>
@@ -149,17 +154,14 @@
                     </p>
                 </li>
 
-                <!-- Cuerpo -->
                 <li class="user-body">
                     <div class="row">
                         <div class="col-12 text-center">
                             <a href="{{ route('perfil') }}" class="btn btn-default btn-flat">Perfil</a>
-
                         </div>
                     </div>
                 </li>
 
-                <!-- Pie -->
                 <li class="user-footer">
                     <a href="{{ route('logout') }}" class="btn btn-danger btn-block">
                         <i class="fas fa-sign-out-alt"></i> Cerrar sesión
@@ -170,16 +172,35 @@
     </ul>
 </nav>
 
-{{-- Estilos y JS específicos del dropdown de notificaciones --}}
+{{-- 🎨 Estilos personalizados --}}
 <style>
-    .dropdown-menu-notifications{
-        width: 420px;              /* más ancho */
-        max-height: 420px;         /* más alto */
-        overflow-y: auto;          /* solo scroll vertical */
-        overflow-x: hidden;        /* sin scroll horizontal */
+    .dropdown-menu-notifications {
+        width: 420px;
+        max-height: 420px;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
-    .dropdown-item-noti{
-        white-space: normal;       /* que el texto haga wrap y no ensanche */
+    .dropdown-item-noti {
+        white-space: normal;
+    }
+
+    /* 🎨 BOTONES ACENTO – COLOR + ANIMACIÓN */
+    .btn-cal.rojo {
+        background-color: #e46a6d !important;   /* color base (armoniza con header) */
+        color: #fff !important;
+        font-weight: bold;
+        border-top: 1px solid #f3a1a3;
+        transition:
+            background-color 0.25s ease,
+            transform 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+
+    .btn-cal.rojo:hover {
+        background-color: #d9534f !important;   /* color más intenso */
+        color: #fff !important;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
     }
 </style>
 
@@ -202,20 +223,15 @@ document.addEventListener('click', function (e) {
         })
         .then(r => r.ok ? r.json() : Promise.reject(r))
         .then(() => {
-            // Quitar la notificación del dropdown
             const item = btn.closest('.dropdown-item-noti');
             if (item) item.remove();
 
-            // Actualizar badge
             const badge = document.querySelector('.navbar-badge-noti');
             if (badge) {
                 let current = parseInt(badge.textContent) || 0;
                 current = Math.max(current - 1, 0);
-                if (current <= 0) {
-                    badge.remove();
-                } else {
-                    badge.textContent = current;
-                }
+                if (current <= 0) badge.remove();
+                else badge.textContent = current;
             }
         })
         .catch(err => {
