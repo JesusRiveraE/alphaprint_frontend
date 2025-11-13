@@ -104,6 +104,13 @@ Route::middleware(['auth.firebase'])->group(function () {
     // Dashboard principal
     Route::get('/home', [DashboardController::class, 'index'])->name('dashboard');
 
+
+    //RUTAS USUARIOS
+    Route::get('/usuarios',            [UsuarioController::class, 'index'])->name('usuarios.index');
+    Route::get('/usuarios/create',     [UsuarioController::class, 'create'])->name('usuarios.create');
+    Route::get('/usuarios/{id}/edit',  [UsuarioController::class, 'edit'])->name('usuarios.edit');
+
+
     /*
     |--------------------------------------------------------------------------
     | MÓDULO: EMPLEADOS
