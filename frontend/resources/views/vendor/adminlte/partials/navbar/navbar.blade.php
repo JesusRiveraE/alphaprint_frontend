@@ -18,49 +18,58 @@
             </a>
         </li>
 
-<!-- 🔔 Notificaciones -->
-<li class="nav-item dropdown">
-    <a class="nav-link" data-toggle="dropdown" href="#" title="Notificaciones">
-        <i class="fas fa-bell"></i>
+        <!-- 🔔 Notificaciones -->
+        <li class="nav-item dropdown">
+            <a class="nav-link" data-toggle="dropdown" href="#" title="Notificaciones">
+                <i class="fas fa-bell"></i>
 
-        @php $pendientes = $navbar_notificaciones_badge ?? 0; @endphp
-        @if($pendientes > 0)
-            <span class="badge badge-danger navbar-badge">{{ $pendientes }}</span>
-        @endif
-    </a>
-
-    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        <span class="dropdown-item dropdown-header">
-            {{ $pendientes }} Notificación{{ $pendientes !== 1 ? 'es' : '' }} sin leer
-        </span>
-
-        @foreach($navbar_notificaciones ?? [] as $noti)
-            <div class="dropdown-divider"></div>
-            <a href="{{ url('notificaciones') }}" class="dropdown-item d-flex align-items-start">
-                <i class="fas fa-envelope mr-2 {{ empty($noti['leido']) ? 'text-danger' : 'text-muted' }}"></i>
-                <div class="flex-fill">
-                    <div>{{ $noti['mensaje'] ?? 'Nueva notificación' }}</div>
-                    <div class="small text-muted">
-                        {{ isset($noti['fecha']) ? \Carbon\Carbon::parse($noti['fecha'])->diffForHumans() : '' }}
-                    </div>
-                </div>
+                @php $pendientes = $navbar_notificaciones_badge ?? 0; @endphp
+                @if($pendientes > 0)
+                    <span class="badge badge-danger navbar-badge navbar-badge-noti">
+                        {{ $pendientes }}
+                    </span>
+                @endif
             </a>
-        @endforeach
 
-        @if(($navbar_notificaciones_badge ?? 0) === 0)
-            <div class="dropdown-divider"></div>
-            <div class="dropdown-item text-center text-muted small py-3">
-                Sin notificaciones nuevas
+            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right dropdown-menu-notifications">
+                <span class="dropdown-item dropdown-header">
+                    {{ $pendientes }} Notificación{{ $pendientes !== 1 ? 'es' : '' }} sin leer
+                </span>
+
+                @forelse($navbar_notificaciones ?? [] as $noti)
+                    <div class="dropdown-divider m-0"></div>
+
+                    <div class="dropdown-item dropdown-item-noti d-flex align-items-start">
+                        <i class="fas fa-envelope mr-2 {{ empty($noti['leido']) ? 'text-danger' : 'text-muted' }}"></i>
+
+                        <div class="flex-fill">
+                            <div>{{ $noti['mensaje'] ?? 'Nueva notificación' }}</div>
+                            <div class="small text-muted">
+                                {{ isset($noti['fecha']) ? \Carbon\Carbon::parse($noti['fecha'])->diffForHumans() : '' }}
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-link text-success btn-mark-read"
+                            data-id="{{ $noti['id_notificacion'] ?? '' }}"
+                            title="Marcar como leída">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                @empty
+                    <div class="dropdown-divider m-0"></div>
+                    <div class="dropdown-item text-center text-muted small py-3">
+                        Sin notificaciones nuevas
+                    </div>
+                @endforelse
+
+                <div class="dropdown-divider m-0"></div>
+                <a href="{{ url('notificaciones') }}" class="dropdown-item dropdown-footer">
+                    Ver todas las notificaciones
+                </a>
             </div>
-        @endif
-
-        <div class="dropdown-divider"></div>
-        <a href="{{ url('notificaciones') }}" class="dropdown-item dropdown-footer">
-            Ver todas las notificaciones
-        </a>
-    </div>
-</li>
-
+        </li>
 
         <!-- 📅 CALENDARIO: Próximas entregas -->
         <li class="nav-item dropdown">
@@ -159,3 +168,59 @@
         </li>
     </ul>
 </nav>
+
+{{-- Estilos y JS específicos del dropdown de notificaciones --}}
+<style>
+    .dropdown-menu-notifications{
+        width: 420px;              /* más ancho */
+        max-height: 420px;         /* más alto */
+        overflow-y: auto;          /* solo scroll vertical */
+        overflow-x: hidden;        /* sin scroll horizontal */
+    }
+    .dropdown-item-noti{
+        white-space: normal;       /* que el texto haga wrap y no ensanche */
+    }
+</style>
+
+<script>
+document.addEventListener('click', function (e) {
+    if (e.target.closest('.btn-mark-read')) {
+        const btn = e.target.closest('.btn-mark-read');
+        const id  = btn.dataset.id;
+
+        if (!id) return;
+
+        fetch(`{{ url('/notificaciones') }}/${id}/leido`, {
+            method: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(() => {
+            // Quitar la notificación del dropdown
+            const item = btn.closest('.dropdown-item-noti');
+            if (item) item.remove();
+
+            // Actualizar badge
+            const badge = document.querySelector('.navbar-badge-noti');
+            if (badge) {
+                let current = parseInt(badge.textContent) || 0;
+                current = Math.max(current - 1, 0);
+                if (current <= 0) {
+                    badge.remove();
+                } else {
+                    badge.textContent = current;
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('No se pudo marcar la notificación como leída.');
+        });
+    }
+});
+</script>

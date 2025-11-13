@@ -27,6 +27,25 @@ class NotificacionController extends Controller
         return view('notificaciones.index', compact('notificaciones'));
     }
 
+public function markAllAsRead()
+{
+    try {
+        $resp = Http::get('http://localhost:3000/api/notificaciones');
+        $notificaciones = $resp->json() ?? [];
+
+        foreach ($notificaciones as $n) {
+            if (empty($n['leido'])) {
+                Http::put("http://localhost:3000/api/notificaciones/{$n['id_notificacion']}/leida");
+            }
+        }
+    } catch (\Throwable $e) {
+        // opcional: loguear error
+    }
+
+    return back()->with('status', 'Notificaciones marcadas como leídas.');
+}
+
+
     // PUT /notificaciones/{id}/leido  (AJAX)
     public function markAsRead($id)
     {

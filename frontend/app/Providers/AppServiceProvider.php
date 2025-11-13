@@ -35,14 +35,18 @@ class AppServiceProvider extends ServiceProvider
                 $notificaciones = [];
             }
 
-            // Filtrar no leídas
-            $noLeidasAll = array_values(array_filter($notificaciones, function ($n) {
-                // Considera como "no leída" cuando 'leido' esté vacío, null, false o 0
-                return empty($n['leido']);
-            }));
+            // Filtrar no leídas y ordenarlas de más reciente a más antigua
+            $noLeidasAll = collect($notificaciones)
+                ->filter(function ($n) {
+                    // Considera como "no leída" cuando 'leido' esté vacío, null, false o 0
+                    return empty($n['leido']);
+                })
+                ->sortByDesc('fecha')
+                ->values()
+                ->all();
 
-            // Máximo 5 en el dropdown de la campana
-            $navbar_notificaciones = array_slice($noLeidasAll, 0, 5);
+            // 🔔 AHORA: TODAS las no leídas se envían al navbar (sin límite)
+            $navbar_notificaciones = $noLeidasAll;
 
             // Conteo total de no leídas para el badge
             $navbar_notificaciones_badge = count($noLeidasAll);
@@ -80,14 +84,14 @@ class AppServiceProvider extends ServiceProvider
 
             // Pasar a todas las vistas
             $view->with([
-                // 🔔 Solo no leídas (máx 5) para listar en el dropdown
-                'navbar_notificaciones' => $navbar_notificaciones,
+                // 🔔 Todas las NO leídas para el dropdown (tu scroll se encarga del resto)
+                'navbar_notificaciones'         => $navbar_notificaciones,
 
                 // 🔢 Conteo real de no leídas (para el badge)
-                'navbar_notificaciones_badge' => $navbar_notificaciones_badge,
+                'navbar_notificaciones_badge'   => $navbar_notificaciones_badge,
 
                 // 📅 Próximas entregas
-                'navbar_entregas' => $entregas,
+                'navbar_entregas'               => $entregas,
             ]);
         });
     }
