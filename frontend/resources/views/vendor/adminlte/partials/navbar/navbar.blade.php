@@ -153,7 +153,8 @@
                 <li class="user-body">
                     <div class="row">
                         <div class="col-12 text-center">
-                            <a href="#" class="btn btn-default btn-flat disabled">Perfil</a>
+                            <a href="{{ route('perfil') }}" class="btn btn-default btn-flat">Perfil</a>
+
                         </div>
                     </div>
                 </li>

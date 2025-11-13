@@ -165,6 +165,9 @@ Route::middleware(['auth.firebase'])->group(function () {
     Route::get('/empleados', [EmpleadoController::class, 'index'])->name('empleados.index');
     Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
 
+    Route::get('/perfil', [UsuarioController::class, 'perfil'])->name('perfil');
+
+
     // ➕ Ruta añadida: marcar notificación como leída (AJAX)
     Route::put('/notificaciones/{id}/leido', [NotificacionController::class, 'markAsRead'])->name('notificaciones.leer');
     Route::post('/notificaciones/marcar-todas', [NotificacionController::class, 'markAllAsRead'])

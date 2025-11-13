@@ -11,4 +11,12 @@ class UsuarioController extends Controller
         $usuarios = []; 
         return view('usuarios.index', compact('usuarios'));
     }
+
+    public function perfil()
+    {
+    $usuario = session('firebase_user'); // datos de Firebase ya guardados
+    return view('perfil.index', compact('usuario'));
+
+    }
+
 }
