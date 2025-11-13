@@ -3,96 +3,87 @@
 @section('title', 'Nueva Valoración')
 
 @section('content_header')
-    <h1>Registrar Nueva Valoración</h1>
+<div class="d-flex justify-content-between align-items-center">
+    <h1 class="m-0">
+        <i class="fas fa-star-half-alt mr-2 brand-text"></i> Nueva Valoración
+    </h1>
+    <a href="{{ route('valoraciones.index') }}" class="btn btn-sm btn-secondary">
+        <i class="fas fa-arrow-left mr-1"></i> Volver al listado
+    </a>
+</div>
 @stop
 
 @section('content')
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form action="{{ route('valoraciones.store') }}" method="POST">
-            @csrf
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-soft">
+            <div class="card-header border-brand">
+                <strong class="brand-text">Registrar valoración</strong>
+            </div>
 
-            {{-- ⭐ Sistema de estrellas interactivo --}}
-            <div class="mb-4 text-center">
-                <label class="form-label fw-bold d-block mb-2">Puntuación</label>
-                <div class="star-rating" id="rating-stars">
-                    <i class="fas fa-star star" data-value="1"></i>
-                    <i class="fas fa-star star" data-value="2"></i>
-                    <i class="fas fa-star star" data-value="3"></i>
-                    <i class="fas fa-star star" data-value="4"></i>
-                    <i class="fas fa-star star" data-value="5"></i>
+            <form action="{{ route('valoraciones.store') }}" method="POST">
+                @csrf
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="puntuacion">Puntuación</label>
+                        <select name="puntuacion" id="puntuacion" class="form-control @error('puntuacion') is-invalid @enderror" required>
+                            <option value="">Seleccione...</option>
+                            @for($i=1;$i<=5;$i++)
+                                <option value="{{ $i }}" {{ old('puntuacion') == $i ? 'selected' : '' }}>
+                                    {{ $i }} ⭐
+                                </option>
+                            @endfor
+                        </select>
+                        @error('puntuacion')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="comentario">Comentario (opcional)</label>
+                        <textarea name="comentario" id="comentario" rows="4"
+                                  class="form-control @error('comentario') is-invalid @enderror"
+                                  placeholder="Cuéntanos tu experiencia...">{{ old('comentario') }}</textarea>
+                        @error('comentario')
+                            <span class="invalid-feedback">{{ $message }}</span>
+                        @enderror
+                    </div>
                 </div>
-                <input type="hidden" name="puntuacion" id="puntuacion" value="{{ old('puntuacion', 0) }}">
-            </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold">Comentario</label>
-                <textarea name="comentario" class="form-control" rows="3">{{ old('comentario') }}</textarea>
-            </div>
-
-            <div class="d-flex justify-content-between">
-                <a href="{{ route('valoraciones.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Volver
-                </a>
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save"></i> Guardar Valoración
-                </button>
-            </div>
-        </form>
+                <div class="card-footer text-right">
+                    <button type="submit" class="btn btn-brand-outline">
+                        <i class="fas fa-save mr-1"></i> Guardar Valoración
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
-
-{{-- ⭐ Script para estrellas dinámicas --}}
-@section('js')
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const stars = document.querySelectorAll("#rating-stars .star");
-        const ratingInput = document.getElementById("puntuacion");
-        let selected = parseInt(ratingInput.value);
-
-        // Función para actualizar el color de las estrellas
-        const updateStars = (hoverValue = 0) => {
-            stars.forEach(star => {
-                const val = parseInt(star.getAttribute("data-value"));
-                if (hoverValue >= val || selected >= val) {
-                    star.classList.add("text-warning");
-                    star.classList.remove("text-muted");
-                } else {
-                    star.classList.remove("text-warning");
-                    star.classList.add("text-muted");
-                }
-            });
-        };
-
-        // Eventos de hover y click
-        stars.forEach(star => {
-            star.addEventListener("mouseover", () => updateStars(star.getAttribute("data-value")));
-            star.addEventListener("mouseout", () => updateStars());
-            star.addEventListener("click", () => {
-                selected = parseInt(star.getAttribute("data-value"));
-                ratingInput.value = selected;
-                updateStars();
-            });
-        });
-
-        // Inicializa las estrellas
-        updateStars();
-    });
-</script>
 @stop
 
-{{-- ⭐ Estilos para estrellas --}}
 @section('css')
 <style>
-    .star-rating {
-        font-size: 2rem;
-        cursor: pointer;
-        user-select: none;
-    }
-    .star {
-        transition: color 0.2s;
-        margin: 0 4px;
-    }
+:root{
+    --brand:#e24e60;
+    --brand-100:#fde5e9;
+}
+.brand-text{ color:var(--brand); }
+.card-soft{
+    border:1px solid #eff1f5;
+    border-radius:.6rem;
+}
+.border-brand{
+    border-left:4px solid var(--brand);
+    background:#fff;
+}
+.btn-brand-outline{
+    border:1px solid var(--brand);
+    color:var(--brand);
+    background:#fff;
+}
+.btn-brand-outline:hover{
+    background:var(--brand-100);
+    color:var(--brand);
+}
 </style>
 @stop
-@endsection

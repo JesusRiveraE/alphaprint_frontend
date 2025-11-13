@@ -4,59 +4,297 @@
     <meta charset="UTF-8">
     <title>Reporte de Valoraciones</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #333; }
-        header { text-align: center; border-bottom: 3px solid #0c4b8e; padding: 15px 0; }
-        header img { width: 100px; vertical-align: middle; }
-        .company-info { display: inline-block; margin-left: 10px; vertical-align: middle; text-align: left; }
-        .company-info h1 { margin: 0; color: #0c4b8e; font-size: 20px; }
-        main { margin: 30px 40px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #999; padding: 8px; }
-        th { background-color: #f2f2f2; color: #0c4b8e; text-align: center; }
-        td { text-align: center; }
-        footer { text-align: center; font-size: 11px; color: #777; border-top: 1px solid #ddd; padding-top: 8px; margin-top: 30px; }
+        /* Fuente genérica para que DomPDF no sufra */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
+            font-size: 11px;
+            color: #2b2f33;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .brand {
+            color: #e24e60;
+        }
+
+        .brand-bg {
+            background-color: #e24e60;
+            color: #ffffff;
+        }
+
+        .brand-soft {
+            background-color: #fde5e9;
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: 4px; }
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mb-1 { margin-bottom: 4px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mb-4 { margin-bottom: 16px; }
+        .py-1 { padding-top:4px; padding-bottom:4px; }
+
+        .header {
+            border-bottom: 2px solid #e24e60;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .header-left {
+            float: left;
+            width: 60%;
+        }
+
+        .header-right {
+            float: right;
+            width: 40%;
+            text-align: right;
+        }
+
+        .clearfix::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .card {
+            border: 1px solid #eff1f5;
+            border-radius: 6px;
+            padding: 10px 12px;
+        }
+
+        .card-title {
+            border-left: 4px solid #e24e60;
+            padding-left: 8px;
+            font-weight: bold;
+            color: #e24e60;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+
+        thead tr {
+            background-color: #fde5e9;
+        }
+
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 6px 5px;
+            vertical-align: top;
+        }
+
+        th {
+            font-size: 11px;
+            text-align: left;
+            color: #4b5563;
+        }
+
+        td {
+            font-size: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .badge-success {
+            background-color: #16a34a;
+            color: #fff;
+        }
+        .badge-warning {
+            background-color: #f59e0b;
+            color: #fff;
+        }
+        .badge-danger {
+            background-color: #dc2626;
+            color: #fff;
+        }
+        .badge-secondary {
+            background-color: #9ca3af;
+            color: #fff;
+        }
+
+        .chip-date {
+            background-color: #fde5e9;
+            color: #e24e60;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 9px;
+            display: inline-block;
+        }
+
+        .summary-table {
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .summary-table td {
+            border: none;
+            padding: 2px 0;
+            font-size: 10px;
+        }
+
+        .summary-label {
+            color: #6b7280;
+        }
+
+        .summary-value {
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 18px;
+            font-size: 9px;
+            color: #9ca3af;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 6px;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <img src="{{ public_path('img/alphaprint_logo.png') }}" alt="Logo">
-        <div class="company-info">
-            <h1>AlphaPrint</h1>
-            <p>Soluciones Gráficas Profesionales</p>
-            <p>Tegucigalpa, Honduras</p>
-        </div>
-    </header>
 
-    <main>
-        <h2>Reporte General de Valoraciones</h2>
+    {{-- ENCABEZADO PRINCIPAL --}}
+    <div class="header clearfix">
+        <div class="header-left">
+            <div style="font-size:18px; font-weight:bold;" class="brand">
+                AlphaPrint
+            </div>
+            <div style="font-size:13px; font-weight:bold;" class="mt-1">
+                Reporte de Valoraciones
+            </div>
+            <div style="font-size:10px; color:#6b7280;" class="mt-1">
+                Resumen de opiniones registradas en el sistema.
+            </div>
+        </div>
+        <div class="header-right">
+            @php
+                $now = \Carbon\Carbon::now('America/Tegucigalpa');
+            @endphp
+            <div class="chip-date">
+                Generado: {{ $now->format('d/m/Y H:i') }} (GMT-6)
+            </div>
+            <div style="font-size:10px; color:#6b7280;" class="mt-1">
+                Usuario: {{ session('firebase_user.email') ?? 'Administrador' }}
+            </div>
+        </div>
+    </div>
+
+    {{-- RESUMEN RÁPIDO (opcional: usa datos si tu controlador los envía; si no, se llenan con cálculos simples) --}}
+    @php
+        $total = isset($totalValoraciones) ? $totalValoraciones : count($valoraciones ?? []);
+        // promedio rápido usando colección
+        $promedio = isset($promedioPuntuacion)
+            ? $promedioPuntuacion
+            : (collect($valoraciones ?? [])->avg(function($v){
+                    $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
+                    return (int)$p;
+              }) ?? 0);
+        $promedio = round($promedio, 2);
+
+        $altas = collect($valoraciones ?? [])->filter(function($v){
+            $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
+            return (int)$p >= 4;
+        })->count();
+
+        $bajas = collect($valoraciones ?? [])->filter(function($v){
+            $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
+            return (int)$p <= 2;
+        })->count();
+    @endphp
+
+    <div class="card mb-3">
+        <div class="card-title">Resumen general</div>
+        <table class="summary-table">
+            <tr>
+                <td class="summary-label">Total de valoraciones:</td>
+                <td class="summary-value">{{ $total }}</td>
+                <td class="summary-label">Promedio de puntuación:</td>
+                <td class="summary-value">{{ $promedio }} / 5</td>
+            </tr>
+            <tr>
+                <td class="summary-label">Valoraciones altas (4-5):</td>
+                <td class="summary-value">{{ $altas }}</td>
+                <td class="summary-label">Valoraciones bajas (1-2):</td>
+                <td class="summary-value">{{ $bajas }}</td>
+            </tr>
+        </table>
+    </div>
+
+    {{-- TABLA DETALLADA --}}
+    <div class="card">
+        <div class="card-title">Detalle de valoraciones</div>
+
         <table>
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Puntuación</th>
-                    <th>Comentario</th>
-                    <th>Fecha</th>
-                </tr>
+            <tr>
+                <th style="width:7%;">ID</th>
+                <th style="width:15%;">Puntuación</th>
+                <th>Comentario</th>
+                <th style="width:22%;">Fecha (GMT-6)</th>
+            </tr>
             </thead>
             <tbody>
-                @foreach ($valoraciones as $v)
-                    <tr>
-                        <td>{{ $v['id_valoracion'] ?? '—' }}</td>
-                        <td>{{ $v['puntuacion'] ?? '—' }}</td>
-                        <td>{{ $v['comentario'] ?? '—' }}</td>
-                        <td>
-                            {{ !empty($v['fecha_creacion'])
-                                ? \Carbon\Carbon::parse($v['fecha_creacion'])->format('d/m/Y H:i')
-                                : '—' }}
-                        </td>
-                    </tr>
-                @endforeach
+            @forelse($valoraciones as $item)
+                @php
+                    $score = (int)($item['puntuacion'] ?? $item->puntuacion ?? 0);
+                    $badgeClass = 'badge-secondary';
+                    if ($score >= 4)      $badgeClass = 'badge-success';
+                    elseif ($score == 3)  $badgeClass = 'badge-warning';
+                    elseif ($score > 0)   $badgeClass = 'badge-danger';
+
+                    $fechaRaw = $item['fecha'] ?? $item->fecha ?? null;
+                    $fechaFmt = $fechaRaw
+                        ? \Carbon\Carbon::parse($fechaRaw, 'UTC')
+                            ->setTimezone('America/Tegucigalpa')
+                            ->format('d/m/Y H:i')
+                        : '—';
+                @endphp
+                <tr>
+                    <td class="text-center">
+                        {{ $item['id_valoracion'] ?? $item->id_valoracion ?? '' }}
+                    </td>
+                    <td>
+                        <span class="badge {{ $badgeClass }}">
+                            {{ $score }} / 5
+                        </span>
+                    </td>
+                    <td>
+                        {{ $item['comentario'] ?? $item->comentario ?? '—' }}
+                    </td>
+                    <td>
+                        <span class="chip-date">{{ $fechaFmt }}</span>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="4" class="text-center py-1" style="color:#9ca3af;">
+                        No hay datos para mostrar.
+                    </td>
+                </tr>
+            @endforelse
             </tbody>
         </table>
-    </main>
+    </div>
 
-    <footer>
-        AlphaPrint © {{ date('Y') }} — Reporte generado automáticamente por el sistema
-    </footer>
+    <div class="footer">
+        Reporte generado automáticamente por el sistema Alphaprint.  
+        Este documento es solo para uso interno.
+    </div>
+
 </body>
 </html>
