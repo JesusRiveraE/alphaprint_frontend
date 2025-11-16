@@ -24,7 +24,7 @@
                 <i class="fas fa-search mr-1"></i> Buscar clientes
             </button>
 
-            {{-- Botón nuevo cliente (ajusta la ruta si tu proyecto usa otra) --}}
+            {{-- Botón nuevo cliente --}}
             <a href="{{ route('clientes.create') }}"
                class="btn btn-sm btn-brand-outline">
                 <i class="fas fa-user-plus mr-1"></i> Nuevo Cliente
@@ -33,6 +33,16 @@
     </div>
 
     <div class="card-body">
+
+        {{-- Mensaje de éxito desde backend --}}
+        @if(session('success'))
+            <div class="alert alert-success mb-3">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        {{-- Mensaje de éxito desde sessionStorage (crear/editar) --}}
+        <div id="clientes-alert-container"></div>
 
         {{-- Selector filas por página --}}
         <div class="d-flex justify-content-start align-items-center mb-3">
@@ -66,33 +76,36 @@
                 </thead>
                 <tbody>
                     @forelse($clientes ?? [] as $c)
+                        @php
+                            $id = $c['id_cliente'] ?? $c->id_cliente ?? 0;
+                            $nombre = $c['nombre'] ?? $c->nombre ?? '';
+                            $telefono = $c['telefono'] ?? $c->telefono ?? '—';
+                            $correo = $c['correo'] ?? $c->correo ?? '—';
+                            $fechaRaw = $c['fecha_creacion'] ?? $c->fecha_creacion ?? null;
+                        @endphp
                         <tr>
-                            <td class="text-muted">{{ $c['id_cliente'] ?? $c->id_cliente ?? '' }}</td>
-                            <td><strong>{{ $c['nombre'] ?? $c->nombre ?? '' }}</strong></td>
-                            <td>{{ $c['telefono'] ?? $c->telefono ?? '—' }}</td>
-                            <td>{{ $c['correo'] ?? $c->correo ?? '—' }}</td>
-                            <td>
-                               @php
-                                  $fechaRaw = $c['fecha_creacion'] ?? $c->fecha_creacion ?? null;
-                               @endphp
-
-                               {{ $fechaRaw ?? '—' }}
-
-                            </td>
+                            <td class="text-muted">{{ $id }}</td>
+                            <td><strong>{{ $nombre }}</strong></td>
+                            <td>{{ $telefono }}</td>
+                            <td>{{ $correo }}</td>
+                            <td>{{ $fechaRaw ?? '—' }}</td>
                             <td class="text-right">
-                                {{-- Ajusta rutas según tu proyecto --}}
-                                <a href="{{ route('clientes.show', $c['id_cliente'] ?? $c->id_cliente ?? 0) }}"
+                                <a href="{{ route('clientes.show', $id) }}"
                                    class="btn btn-xs btn-outline-secondary">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('clientes.edit', $c['id_cliente'] ?? $c->id_cliente ?? 0) }}"
+                                <a href="{{ route('clientes.edit', $id) }}"
                                    class="btn btn-xs btn-outline-primary">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('clientes.destroy', $c['id_cliente'] ?? $c->id_cliente ?? 0) }}"
+
+                                {{-- FORM ELIMINAR (sin confirm nativo) --}}
+                                <form action="{{ route('clientes.destroy', $id) }}"
                                       method="POST"
-                                      class="d-inline"
-                                      onsubmit="return confirm('¿Seguro que deseas eliminar este cliente?');">
+                                      class="d-inline delete-cliente-form"
+                                      data-id="{{ $id }}"
+                                      data-nombre="{{ $nombre }}"
+                                      data-correo="{{ $correo }}">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-xs btn-outline-danger">
@@ -193,6 +206,52 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL CONFIRMACIÓN ELIMINACIÓN CLIENTE --}}
+<div class="modal fade" id="modalConfirmDeleteCliente" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content modal-confirm-alpha">
+
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title brand-text">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Confirmar eliminación
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body text-center">
+                <div class="icon-circle mb-3">
+                    <i class="fas fa-user-times"></i>
+                </div>
+
+                <p class="mb-1">
+                    ¿Seguro que deseas eliminar al cliente
+                    <strong><span id="modal-cliente-nombre"></span></strong>?
+                </p>
+                <p class="mb-2">
+                    ID: <strong>#<span id="modal-cliente-id"></span></strong><br>
+                    Correo: <strong><span id="modal-cliente-correo"></span></strong>
+                </p>
+                <p class="text-muted small mb-0">
+                    Esta acción es permanente y no podrás recuperar el cliente después de eliminarlo.
+                </p>
+            </div>
+
+            <div class="modal-footer border-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger-brand" id="btnConfirmDeleteCliente">
+                    <i class="fas fa-trash mr-1"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @stop
 
 @section('css')
@@ -281,6 +340,48 @@
     font-size:.75rem;
     color:#9ca3af;
 }
+
+/* Modal confirmación eliminación (mismo estilo que usuarios/pedidos) */
+.modal-confirm-alpha{
+    border-radius:.8rem;
+    overflow:hidden;
+    box-shadow:0 15px 35px rgba(15,23,42,0.2);
+}
+.modal-confirm-alpha .modal-body{
+    padding-top:1rem;
+    padding-bottom:1.25rem;
+}
+.icon-circle{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    background:var(--brand-100);
+    color:var(--brand);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.8rem;
+    margin:0 auto;
+}
+.btn-danger-brand{
+    background:#e24e60;
+    border-color:#e24e60;
+    color:#fff;
+    font-weight:600;
+    border-radius:.5rem;
+    padding:.45rem 1.2rem;
+    transition:
+        background-color .2s ease,
+        box-shadow .15s ease,
+        transform .15s ease;
+}
+.btn-danger-brand:hover{
+    background:#c23c4e;
+    border-color:#c23c4e;
+    color:#fff;
+    box-shadow:0 6px 14px rgba(226,78,96,0.35);
+    transform:translateY(-1px);
+}
 </style>
 @stop
 
@@ -288,6 +389,23 @@
 <script>
 (function(){
 
+    /* =========================
+     * Mensaje de éxito (sessionStorage)
+     * ========================= */
+    document.addEventListener('DOMContentLoaded', function () {
+        const msg = sessionStorage.getItem('clientes_success');
+        if (msg) {
+            const cont = document.getElementById('clientes-alert-container');
+            if (cont) {
+                cont.innerHTML = `<div class="alert alert-success mb-3">${msg}</div>`;
+            }
+            sessionStorage.removeItem('clientes_success');
+        }
+    });
+
+    /* =========================
+     * Paginación y búsqueda
+     * ========================= */
     const filasOriginal = Array.from(document.querySelectorAll('#tabla-clientes tbody tr'));
     let filasFiltradas = filasOriginal.slice();
     let filasPorPagina = 10;
@@ -409,6 +527,50 @@
 
     // Render inicial
     render();
+
+    /* =========================
+     * Confirmación de eliminación con modal
+     * ========================= */
+    let formClienteAEliminar = null;
+
+    const spanId     = document.getElementById('modal-cliente-id');
+    const spanNombre = document.getElementById('modal-cliente-nombre');
+    const spanCorreo = document.getElementById('modal-cliente-correo');
+    const btnConfirm = document.getElementById('btnConfirmDeleteCliente');
+
+    document.querySelectorAll('.delete-cliente-form').forEach(form => {
+        form.addEventListener('submit', function(e){
+            // Evitar loop al confirmar
+            if (this.dataset.confirmed === 'true') {
+                return;
+            }
+
+            e.preventDefault();
+            formClienteAEliminar = this;
+
+            const id = this.dataset.id || '';
+            const nombre = this.dataset.nombre || '';
+            const correo = this.dataset.correo || '';
+
+            if (spanId) spanId.textContent = id;
+            if (spanNombre) spanNombre.textContent = nombre;
+            if (spanCorreo) spanCorreo.textContent = correo;
+
+            if (window.$) {
+                $('#modalConfirmDeleteCliente').modal('show');
+            }
+        });
+    });
+
+    if (btnConfirm){
+        btnConfirm.addEventListener('click', function(){
+            if (!formClienteAEliminar) return;
+
+            // Marcar como confirmada para que el submit no vuelva a abrir el modal
+            formClienteAEliminar.dataset.confirmed = 'true';
+            formClienteAEliminar.submit();
+        });
+    }
 
 })();
 </script>

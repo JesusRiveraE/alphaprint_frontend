@@ -3,7 +3,9 @@
 @section('title','Nuevo Cliente')
 
 @section('content_header')
-<h1 class="m-0"><i class="fas fa-user-plus mr-2 brand-text"></i> Nuevo Cliente</h1>
+<h1 class="m-0">
+    <i class="fas fa-user-plus mr-2 brand-text"></i> Nuevo Cliente
+</h1>
 @stop
 
 @section('content')
@@ -12,8 +14,11 @@
         <strong class="brand-text">Datos del Cliente</strong>
     </div>
     <div class="card-body">
-        <form action="{{ route('clientes.store') }}" method="POST">
+        <form id="formCrearCliente"
+              action="{{ route('clientes.store') }}"
+              method="POST">
             @csrf
+
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label class="label-brand">Nombre</label>
@@ -44,12 +49,72 @@
 
 @section('css')
 <style>
-:root{ --brand:#e24e60; --brand-600:#cc4656; }
-.brand-text{ color: var(--brand); }
-.card-soft{ border:1px solid #eff1f5; border-radius:.6rem; }
-.border-brand{ border-left:4px solid var(--brand); background:#fff; }
-.label-brand{ font-weight:600; color:#4b5563; }
-.btn-brand{ background:var(--brand); border-color:var(--brand); color:#fff; }
-.btn-brand:hover{ background:var(--brand-600); border-color:var(--brand-600); }
+:root{
+    --brand:#e24e60;
+    --brand-600:#cc4656;
+}
+.brand-text{
+    color: var(--brand);
+}
+.card-soft{
+    border:1px solid #eff1f5;
+    border-radius:.6rem;
+}
+.border-brand{
+    border-left:4px solid var(--brand);
+    background:#fff;
+}
+.label-brand{
+    font-weight:600;
+    color:#4b5563;
+}
+.btn-brand{
+    background:var(--brand);
+    border-color:var(--brand);
+    color:#fff;
+    font-weight:600;
+}
+.btn-brand:hover{
+    background:var(--brand-600);
+    border-color:var(--brand-600);
+}
 </style>
+@stop
+
+@section('js')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('formCrearCliente');
+    if (!form) return;
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const action = form.action;
+        const formData = new FormData(form);
+
+        fetch(action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(async response => {
+            if (!response.ok) {
+                // Si Laravel devuelve errores de validación (422), podrías manejarlos aquí
+                throw new Error('Error HTTP ' + response.status);
+            }
+
+            // Guardamos el mensaje para mostrarlo en el index
+            sessionStorage.setItem('clientes_success', 'Cliente creado con éxito');
+            window.location.href = "{{ route('clientes.index') }}";
+        })
+        .catch(err => {
+            console.error(err);
+            alert('❌ No se pudo crear el cliente. Revisa los datos e inténtalo de nuevo.');
+        });
+    });
+});
+</script>
 @stop
