@@ -287,3 +287,11 @@ export {
   onValue,
   off
 };
+
+export async function getIdToken() {
+  const user = await authReady;      // ya lo usas en authorizedFetch
+  if (!user) {
+    throw new Error('No hay usuario autenticado');
+  }
+  return user.getIdToken();
+}
