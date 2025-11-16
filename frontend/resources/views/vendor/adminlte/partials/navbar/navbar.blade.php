@@ -300,6 +300,31 @@
         transform:translateY(-1px);
         box-shadow:0 4px 12px rgba(226,78,96,0.35);
     }
+
+    /* ==== FIX: Notificaciones que se cortan ==== */
+.dropdown-item-noti {
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    max-width: 100% !important;
+    line-height: 1.2rem;
+    align-items: flex-start !important;
+    padding-top: .75rem;
+    padding-bottom: .75rem;
+}
+
+.dropdown-item-noti .flex-fill {
+    white-space: normal !important;
+    overflow: visible !important;
+}
+
+.dropdown-menu-notifications {
+    width: 450px !important;        /* un poco más amplio */
+    max-height: 480px !important;   /* scroll más cómodo */
+    overflow-y: auto !important;
+}
+
+
 </style>
 
 
