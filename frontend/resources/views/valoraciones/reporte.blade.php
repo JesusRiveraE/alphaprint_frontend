@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <title>Reporte de Valoraciones</title>
     <style>
-        /* Fuente genérica para que DomPDF no sufra */
+        :root {
+            --brand: #e24e60;
+            --brand-dark: #c23c4e;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -14,20 +18,49 @@
             font-size: 11px;
             color: #2b2f33;
             margin: 0;
-            padding: 20px;
         }
 
-        .brand {
-            color: #e24e60;
+        /* ENCABEZADO TIPO AL PRIMER REPORTE */
+        header {
+            text-align: center;
+            border-bottom: 3px solid var(--brand);
+            padding: 15px 0;
         }
 
-        .brand-bg {
-            background-color: #e24e60;
-            color: #ffffff;
+        header img {
+            width: 100px;
+            vertical-align: middle;
         }
 
-        .brand-soft {
-            background-color: #fde5e9;
+        .company-info {
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+            text-align: left;
+        }
+
+        .company-info h1 {
+            margin: 0;
+            color: var(--brand);
+            font-size: 20px;
+        }
+
+        .company-info p {
+            margin: 0;
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        main {
+            margin: 20px 30px;
+        }
+
+        h2 {
+            color: var(--brand);
+            font-size: 16px;
+            border-bottom: 2px solid var(--brand);
+            padding-bottom: 4px;
+            margin-bottom: 8px;
         }
 
         .text-right { text-align: right; }
@@ -41,41 +74,19 @@
         .mb-4 { margin-bottom: 16px; }
         .py-1 { padding-top:4px; padding-bottom:4px; }
 
-        .header {
-            border-bottom: 2px solid #e24e60;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-        }
-
-        .header-left {
-            float: left;
-            width: 60%;
-        }
-
-        .header-right {
-            float: right;
-            width: 40%;
-            text-align: right;
-        }
-
-        .clearfix::after {
-            content: "";
-            display: table;
-            clear: both;
-        }
-
         .card {
             border: 1px solid #eff1f5;
             border-radius: 6px;
             padding: 10px 12px;
+            margin-bottom: 12px;
         }
 
         .card-title {
-            border-left: 4px solid #e24e60;
+            border-left: 4px solid var(--brand);
             padding-left: 8px;
             font-weight: bold;
-            color: #e24e60;
-            margin-bottom: 10px;
+            color: var(--brand);
+            margin-bottom: 8px;
         }
 
         table {
@@ -131,7 +142,7 @@
 
         .chip-date {
             background-color: #fde5e9;
-            color: #e24e60;
+            color: var(--brand);
             border-radius: 999px;
             padding: 2px 8px;
             font-size: 9px;
@@ -157,144 +168,154 @@
             font-weight: bold;
         }
 
+        .report-meta {
+            font-size: 10px;
+            color: #6b7280;
+            margin-bottom: 10px;
+            text-align: right;
+        }
+
         .footer {
             margin-top: 18px;
             font-size: 9px;
             color: #9ca3af;
             border-top: 1px solid #e5e7eb;
             padding-top: 6px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    {{-- ENCABEZADO PRINCIPAL --}}
-    <div class="header clearfix">
-        <div class="header-left">
-            <div style="font-size:18px; font-weight:bold;" class="brand">
-                AlphaPrint
-            </div>
-            <div style="font-size:13px; font-weight:bold;" class="mt-1">
-                Reporte de Valoraciones
-            </div>
-            <div style="font-size:10px; color:#6b7280;" class="mt-1">
-                Resumen de opiniones registradas en el sistema.
-            </div>
+    {{-- ENCABEZADO PRINCIPAL CON LOGO (MISMO QUE EN EL OTRO REPORTE) --}}
+    <header>
+        <img src="{{ public_path('vendor/adminlte/dist/img/AdminLTELogo.png') }}" alt="Logo">
+        <div class="company-info">
+            <h1>AlphaPrint</h1>
+            <p>Soluciones Gráficas Profesionales</p>
+            <p>Tegucigalpa, Honduras</p>
         </div>
-        <div class="header-right">
-            @php
-                $now = \Carbon\Carbon::now('America/Tegucigalpa');
-            @endphp
-            <div class="chip-date">
-                Generado: {{ $now->format('d/m/Y H:i') }} (GMT-6)
-            </div>
-            <div style="font-size:10px; color:#6b7280;" class="mt-1">
-                Usuario: {{ session('firebase_user.email') ?? 'Administrador' }}
-            </div>
+    </header>
+
+    <main>
+        @php
+            $now = \Carbon\Carbon::now('America/Tegucigalpa');
+        @endphp
+
+        <div class="report-meta">
+            <span class="chip-date">
+                Generado: {{ $now->format('d/m/Y H:i') }} 
+            </span><br>
+            Usuario: {{ session('firebase_user.email') ?? 'Administrador' }}
         </div>
-    </div>
 
-    {{-- RESUMEN RÁPIDO (opcional: usa datos si tu controlador los envía; si no, se llenan con cálculos simples) --}}
-    @php
-        $total = isset($totalValoraciones) ? $totalValoraciones : count($valoraciones ?? []);
-        // promedio rápido usando colección
-        $promedio = isset($promedioPuntuacion)
-            ? $promedioPuntuacion
-            : (collect($valoraciones ?? [])->avg(function($v){
-                    $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
-                    return (int)$p;
-              }) ?? 0);
-        $promedio = round($promedio, 2);
+        <h2>Reporte de Valoraciones</h2>
+        <p style="font-size:10px; color:#6b7280; margin-top:0; margin-bottom:10px;">
+            Resumen de opiniones registradas en el sistema.
+        </p>
 
-        $altas = collect($valoraciones ?? [])->filter(function($v){
-            $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
-            return (int)$p >= 4;
-        })->count();
+        {{-- RESUMEN RÁPIDO (MISMA LÓGICA QUE YA TENÍAS) --}}
+        @php
+            $total = isset($totalValoraciones) ? $totalValoraciones : count($valoraciones ?? []);
+            // promedio rápido usando colección
+            $promedio = isset($promedioPuntuacion)
+                ? $promedioPuntuacion
+                : (collect($valoraciones ?? [])->avg(function($v){
+                        $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
+                        return (int)$p;
+                  }) ?? 0);
+            $promedio = round($promedio, 2);
 
-        $bajas = collect($valoraciones ?? [])->filter(function($v){
-            $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
-            return (int)$p <= 2;
-        })->count();
-    @endphp
+            $altas = collect($valoraciones ?? [])->filter(function($v){
+                $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
+                return (int)$p >= 4;
+            })->count();
 
-    <div class="card mb-3">
-        <div class="card-title">Resumen general</div>
-        <table class="summary-table">
-            <tr>
-                <td class="summary-label">Total de valoraciones:</td>
-                <td class="summary-value">{{ $total }}</td>
-                <td class="summary-label">Promedio de puntuación:</td>
-                <td class="summary-value">{{ $promedio }} / 5</td>
-            </tr>
-            <tr>
-                <td class="summary-label">Valoraciones altas (4-5):</td>
-                <td class="summary-value">{{ $altas }}</td>
-                <td class="summary-label">Valoraciones bajas (1-2):</td>
-                <td class="summary-value">{{ $bajas }}</td>
-            </tr>
-        </table>
-    </div>
+            $bajas = collect($valoraciones ?? [])->filter(function($v){
+                $p = is_array($v) ? ($v['puntuacion'] ?? null) : ($v->puntuacion ?? null);
+                return (int)$p <= 2;
+            })->count();
+        @endphp
 
-    {{-- TABLA DETALLADA --}}
-    <div class="card">
-        <div class="card-title">Detalle de valoraciones</div>
-
-        <table>
-            <thead>
-            <tr>
-                <th style="width:7%;">ID</th>
-                <th style="width:15%;">Puntuación</th>
-                <th>Comentario</th>
-                <th style="width:22%;">Fecha (GMT-6)</th>
-            </tr>
-            </thead>
-            <tbody>
-            @forelse($valoraciones as $item)
-                @php
-                    $score = (int)($item['puntuacion'] ?? $item->puntuacion ?? 0);
-                    $badgeClass = 'badge-secondary';
-                    if ($score >= 4)      $badgeClass = 'badge-success';
-                    elseif ($score == 3)  $badgeClass = 'badge-warning';
-                    elseif ($score > 0)   $badgeClass = 'badge-danger';
-
-                    $fechaRaw = $item['fecha'] ?? $item->fecha ?? null;
-                    $fechaFmt = $fechaRaw
-                        ? \Carbon\Carbon::parse($fechaRaw, 'UTC')
-                            ->setTimezone('America/Tegucigalpa')
-                            ->format('d/m/Y H:i')
-                        : '—';
-                @endphp
+        <div class="card">
+            <div class="card-title">Resumen general</div>
+            <table class="summary-table">
                 <tr>
-                    <td class="text-center">
-                        {{ $item['id_valoracion'] ?? $item->id_valoracion ?? '' }}
-                    </td>
-                    <td>
-                        <span class="badge {{ $badgeClass }}">
-                            {{ $score }} / 5
-                        </span>
-                    </td>
-                    <td>
-                        {{ $item['comentario'] ?? $item->comentario ?? '—' }}
-                    </td>
-                    <td>
-                        <span class="chip-date">{{ $fechaFmt }}</span>
-                    </td>
+                    <td class="summary-label">Total de valoraciones:</td>
+                    <td class="summary-value">{{ $total }}</td>
+                    <td class="summary-label">Promedio de puntuación:</td>
+                    <td class="summary-value">{{ $promedio }} / 5</td>
                 </tr>
-            @empty
                 <tr>
-                    <td colspan="4" class="text-center py-1" style="color:#9ca3af;">
-                        No hay datos para mostrar.
-                    </td>
+                    <td class="summary-label">Valoraciones altas (4-5):</td>
+                    <td class="summary-value">{{ $altas }}</td>
+                    <td class="summary-label">Valoraciones bajas (1-2):</td>
+                    <td class="summary-value">{{ $bajas }}</td>
                 </tr>
-            @endforelse
-            </tbody>
-        </table>
-    </div>
+            </table>
+        </div>
 
-    <div class="footer">
-        Reporte generado automáticamente por el sistema Alphaprint.  
-        Este documento es solo para uso interno.
-    </div>
+        {{-- TABLA DETALLADA --}}
+        <div class="card">
+            <div class="card-title">Detalle de valoraciones</div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th style="width:7%;">ID</th>
+                    <th style="width:15%;">Puntuación</th>
+                    <th>Comentario</th>
+                    <th style="width:22%;">Fecha (GMT-6)</th>
+                </tr>
+                </thead>
+                <tbody>
+                @forelse($valoraciones as $item)
+                    @php
+                        $score = (int)($item['puntuacion'] ?? $item->puntuacion ?? 0);
+                        $badgeClass = 'badge-secondary';
+                        if ($score >= 4)      $badgeClass = 'badge-success';
+                        elseif ($score == 3)  $badgeClass = 'badge-warning';
+                        elseif ($score > 0)   $badgeClass = 'badge-danger';
+
+                        $fechaRaw = $item['fecha'] ?? $item->fecha ?? null;
+                        $fechaFmt = $fechaRaw
+                            ? \Carbon\Carbon::parse($fechaRaw, 'UTC')
+                                ->setTimezone('America/Tegucigalpa')
+                                ->format('d/m/Y H:i')
+                            : '—';
+                    @endphp
+                    <tr>
+                        <td class="text-center">
+                            {{ $item['id_valoracion'] ?? $item->id_valoracion ?? '' }}
+                        </td>
+                        <td>
+                            <span class="badge {{ $badgeClass }}">
+                                {{ $score }} / 5
+                            </span>
+                        </td>
+                        <td>
+                            {{ $item['comentario'] ?? $item->comentario ?? '—' }}
+                        </td>
+                        <td>
+                            <span class="chip-date">{{ $fechaFmt }}</span>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="text-center py-1" style="color:#9ca3af;">
+                            No hay datos para mostrar.
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            Reporte generado automáticamente por el sistema Alphaprint.  
+            Este documento es solo para uso interno.
+        </div>
+    </main>
 
 </body>
 </html>
