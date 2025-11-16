@@ -21,7 +21,7 @@
     </div>
 
     <div class="card-body">
-        {{-- Para mostrar errores si quieres usarlos después desde Laravel --}}
+        {{-- Errores de validación si los usas desde Laravel --}}
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul class="mb-0">
@@ -186,8 +186,7 @@
         try {
             await authReady;
 
-            // Como no sabemos si tienes GET /api/usuarios/:id,
-            // reutilizamos GET /api/usuarios y filtramos.
+            // Reutilizamos GET /api/usuarios y filtramos por id
             const response = await authorizedFetch('http://localhost:3000/api/usuarios');
             const data     = await response.json();
 
@@ -199,7 +198,8 @@
             const usuario  = usuarios.find(u => String(u.id_usuario) === String(usuarioId));
 
             if (!usuario) {
-                alert('No se encontró el usuario seleccionado.');
+                // Redirigimos sin alert nativa
+                console.error('No se encontró el usuario seleccionado.');
                 window.location.href = "{{ route('usuarios.index') }}";
                 return;
             }
@@ -212,7 +212,7 @@
 
         } catch (err) {
             console.error('Error cargando datos del usuario:', err);
-            alert('❌ Error al cargar el usuario:\n\n' + err.message);
+            // En caso de error grave, redirigimos al listado
             window.location.href = "{{ route('usuarios.index') }}";
         }
     }
@@ -229,7 +229,6 @@
         const activoSelect   = document.getElementById('activo-actualizar');
 
         const updateData = {
-            // 👇 Misma estructura que tenías en el modal
             nombre_usuario: nombreInput.value.trim(),
             email:          emailInput.value.trim(),
             rol:            rolSelect.value,
@@ -260,11 +259,16 @@
                 throw new Error(msg);
             }
 
-            alert('✅ Usuario actualizado con éxito.');
+            // ✅ Nada de alert nativo: guardamos un mensaje en sessionStorage
+            // para que el index lo lea y muestre la franja verde
+            sessionStorage.setItem('usuarios_success', 'Usuario actualizado con éxito');
+
+            // Redirigimos al listado
             window.location.href = "{{ route('usuarios.index') }}";
 
         } catch (err) {
             console.error('Error actualizando usuario:', err);
+            // Solo en error dejamos un alert (puedes cambiarlo por un toast si quieres)
             alert('❌ Error al actualizar el usuario:\n\n' + err.message);
         }
     }

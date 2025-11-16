@@ -169,8 +169,9 @@
                     throw new Error(msg);
                 }
 
-                alert('✅ ¡Usuario creado exitosamente!');
-                window.location.href = "{{ route('usuarios.index') }}";
+               // después de recibir respuesta OK del API:
+window.location.href = "{{ route('usuarios.index') }}?success=created";
+
             } catch (err) {
                 console.error('Error creando usuario:', err);
                 alert('❌ Error al crear el usuario:\n\n' + err.message);

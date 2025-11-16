@@ -38,6 +38,16 @@
 
     <div class="card-body">
 
+        {{-- Mensaje de éxito desde backend (opcional) --}}
+        @if(session('success'))
+            <div class="alert alert-success mb-3">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        {{-- Contenedor para mensaje de éxito vía sessionStorage (crear / editar) --}}
+        <div id="usuarios-alert-container"></div>
+
         {{-- Selector de filas por página --}}
         <div class="d-flex justify-content-start align-items-center mb-3">
             <label class="mr-2 font-weight-bold">Mostrar:</label>
@@ -177,6 +187,51 @@
     </div>
 </div>
 
+{{-- MODAL CONFIRMACIÓN ELIMINACIÓN USUARIO --}}
+<div class="modal fade" id="modalConfirmDeleteUser" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content modal-confirm-alpha">
+
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title brand-text">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Confirmar eliminación
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body text-center">
+                <div class="icon-circle mb-3">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+
+                <p class="mb-1">
+                    ¿Seguro que deseas eliminar al usuario
+                    <strong><span id="modal-user-nombre"></span></strong>?
+                </p>
+                <p class="mb-2">
+                    ID: <strong>#<span id="modal-user-id"></span></strong><br>
+                    Correo: <strong><span id="modal-user-correo"></span></strong>
+                </p>
+                <p class="text-muted small mb-0">
+                    Esta acción es permanente y no podrás recuperar al usuario después de eliminarlo.
+                </p>
+            </div>
+
+            <div class="modal-footer border-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger-brand" id="btnConfirmDeleteUser">
+                    <i class="fas fa-trash mr-1"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @stop
 
 @section('css')
@@ -286,6 +341,48 @@
     font-size:.75rem;
     color:#9ca3af;
 }
+
+/* Modal confirmación eliminación */
+.modal-confirm-alpha{
+    border-radius:.8rem;
+    overflow:hidden;
+    box-shadow:0 15px 35px rgba(15,23,42,0.2);
+}
+.modal-confirm-alpha .modal-body{
+    padding-top:1rem;
+    padding-bottom:1.25rem;
+}
+.icon-circle{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    background:var(--brand-100);
+    color:var(--brand);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.8rem;
+    margin:0 auto;
+}
+.btn-danger-brand{
+    background:#e24e60;
+    border-color:#e24e60;
+    color:#fff;
+    font-weight:600;
+    border-radius:.5rem;
+    padding:.45rem 1.2rem;
+    transition:
+        background-color .2s ease,
+        box-shadow .15s ease,
+        transform .15s ease;
+}
+.btn-danger-brand:hover{
+    background:#c23c4e;
+    border-color:#c23c4e;
+    color:#fff;
+    box-shadow:0 6px 14px rgba(226,78,96,0.35);
+    transform:translateY(-1px);
+}
 </style>
 @stop
 
@@ -293,11 +390,27 @@
 <script type="module">
     import { authReady, authorizedFetch } from "{{ asset('js/firebase.js') }}";
 
-    // Variables para paginación/búsqueda
+    // Mostrar mensaje de éxito desde sessionStorage (crear / editar)
+    document.addEventListener('DOMContentLoaded', () => {
+        const msg = sessionStorage.getItem('usuarios_success');
+        if (msg) {
+            const cont = document.getElementById('usuarios-alert-container');
+            if (cont) {
+                cont.innerHTML = `<div class="alert alert-success mb-3">${msg}</div>`;
+            }
+            sessionStorage.removeItem('usuarios_success');
+        }
+    });
+
+    // Vars para paginación/búsqueda
     let filasOriginal = [];
     let filasFiltradas = [];
     let filasPorPagina = 10;
     let paginaActual = 1;
+
+    // Vars para eliminación via modal
+    let usuarioAEliminarId = null;
+    let btnEliminarActual = null;
 
     const getTbody = () => document.getElementById('tabla-usuarios-body');
     const info      = () => document.getElementById('usuariosInfo');
@@ -326,7 +439,6 @@
         const total = filasFiltradas.length;
         const paginas = Math.max(1, Math.ceil(total / filasPorPagina));
 
-        // Ocultar todas
         filasOriginal.forEach(f => f.style.display = 'none');
 
         if (total === 0){
@@ -457,7 +569,9 @@
                             type="button"
                             class="btn btn-xs btn-outline-danger btn-eliminar-usuario"
                             title="Eliminar"
-                            onclick="eliminarUsuario(${item.id_usuario})"
+                            data-id="${item.id_usuario}"
+                            data-nombre="${item.nombre_usuario ?? ''}"
+                            data-correo="${item.correo ?? ''}"
                         >
                             <i class="fas fa-trash"></i>
                         </button>
@@ -489,6 +603,8 @@
 
             // Inicializar paginación + filtros
             inicializarPaginacionYBusquedaUsuarios();
+            // Inicializar listeners de eliminación
+            instalarEventosEliminar();
 
         } catch (error) {
             console.error('Error cargando usuarios:', error);
@@ -497,31 +613,43 @@
         }
     }
 
-    /**
-     * Eliminar usuario (DELETE a la API usando authorizedFetch).
-     */
-    window.eliminarUsuario = async function (idUsuario) {
-        if (!idUsuario) {
-            alert('ID de usuario inválido.');
-            return;
-        }
+    // Abrir modal de eliminación con datos del usuario
+    function instalarEventosEliminar() {
+        const botones = document.querySelectorAll('.btn-eliminar-usuario');
+        const spanId = document.getElementById('modal-user-id');
+        const spanNombre = document.getElementById('modal-user-nombre');
+        const spanCorreo = document.getElementById('modal-user-correo');
 
-        if (!confirm('¿Seguro que deseas eliminar este usuario? Esta acción no se puede deshacer.')) {
-            return;
-        }
+        botones.forEach(btn => {
+            btn.addEventListener('click', () => {
+                usuarioAEliminarId = btn.dataset.id || null;
+                btnEliminarActual = btn;
+
+                if (spanId) spanId.textContent = usuarioAEliminarId || '';
+                if (spanNombre) spanNombre.textContent = btn.dataset.nombre || '';
+                if (spanCorreo) spanCorreo.textContent = btn.dataset.correo || '';
+
+                if (window.$) {
+                    $('#modalConfirmDeleteUser').modal('show');
+                }
+            });
+        });
+    }
+
+    // Eliminar usuario al confirmar en el modal
+    async function eliminarUsuarioConfirmado() {
+        const idUsuario = usuarioAEliminarId;
+        if (!idUsuario) return;
 
         const filaId = `fila-usuario-${idUsuario}`;
         const fila   = document.getElementById(filaId);
-        let btn      = null;
+        let btn      = btnEliminarActual;
 
         try {
-            if (fila) {
-                btn = fila.querySelector('.btn-eliminar-usuario');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.dataset._oldHtml = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                }
+            if (btn) {
+                btn.disabled = true;
+                btn.dataset._oldHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             }
 
             await authReady;
@@ -540,7 +668,15 @@
 
             if (fila) fila.remove();
 
-            alert('🗑 Usuario eliminado correctamente.');
+            if (window.$) {
+                $('#modalConfirmDeleteUser').modal('hide');
+            }
+
+            // Mensaje de éxito local (sin alert nativo)
+            const cont = document.getElementById('usuarios-alert-container');
+            if (cont) {
+                cont.innerHTML = '<div class="alert alert-success mb-3">Usuario eliminado con éxito</div>';
+            }
 
             // Recalcular paginación
             inicializarPaginacionYBusquedaUsuarios();
@@ -554,7 +690,7 @@
                 delete btn.dataset._oldHtml;
             }
         }
-    };
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         // Cargar tabla
@@ -567,7 +703,7 @@
             btnCrear.style.display = (userRole === 'Admin') ? 'inline-block' : 'none';
         }
 
-        // Eventos de paginación
+        // Paginación
         const sel = selector();
         if (sel) {
             sel.addEventListener('change', () => {
@@ -616,6 +752,12 @@
                 paginaActual = 1;
                 renderUsuariosPaginados();
             });
+        }
+
+        // Botón confirmar del modal de eliminación
+        const btnConfirm = document.getElementById('btnConfirmDeleteUser');
+        if (btnConfirm) {
+            btnConfirm.addEventListener('click', eliminarUsuarioConfirmado);
         }
     });
 </script>
