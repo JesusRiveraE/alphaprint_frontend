@@ -1,26 +1,26 @@
-<nav class="main-header navbar navbar-expand navbar-white navbar-light">
+<nav class="main-header navbar navbar-expand nav-elevated">
     <!-- Left navbar links -->
     <ul class="navbar-nav">
         <li class="nav-item">
-            <a class="nav-link" data-widget="pushmenu" href="#" role="button">
+            <a class="nav-link nav-toggle" data-widget="pushmenu" href="#" role="button">
                 <i class="fas fa-bars"></i>
             </a>
         </li>
     </ul>
 
     <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
+    <ul class="navbar-nav ml-auto align-items-center">
 
         <!-- Botón de pantalla completa -->
         <li class="nav-item">
-            <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+            <a class="nav-link nav-icon" data-widget="fullscreen" href="#" role="button" title="Pantalla completa">
                 <i class="fas fa-expand-arrows-alt"></i>
             </a>
         </li>
 
         <!-- 🔔 Notificaciones -->
         <li class="nav-item dropdown">
-            <a class="nav-link" data-toggle="dropdown" href="#" title="Notificaciones">
+            <a class="nav-link nav-icon" data-toggle="dropdown" href="#" title="Notificaciones">
                 <i class="fas fa-bell"></i>
 
                 @php $pendientes = $navbar_notificaciones_badge ?? 0; @endphp
@@ -73,7 +73,7 @@
 
         <!-- 📅 CALENDARIO: Próximas entregas -->
         <li class="nav-item dropdown">
-            <a class="nav-link" data-toggle="dropdown" href="#" title="Próximas entregas">
+            <a class="nav-link nav-icon" data-toggle="dropdown" href="#" title="Próximas entregas">
                 <i class="fas fa-calendar-alt"></i>
                 @php $countCalendar = count($navbar_entregas ?? []); @endphp
                 @if($countCalendar > 0)
@@ -92,7 +92,7 @@
 
                 @forelse($navbar_entregas ?? [] as $it)
                     @php
-                        $fecha = !empty($it['fecha_entrega']) ? Carbon::parse($it['fecha_entrega']) : null;
+                        $fecha   = !empty($it['fecha_entrega']) ? Carbon::parse($it['fecha_entrega']) : null;
                         $isToday = $fecha && $fecha->isSameDay($hoy);
                         $badgeClass = 'badge-success';
                         if ($isToday) $badgeClass = 'badge-warning';
@@ -137,34 +137,44 @@
             </div>
         </li>
 
-        <!-- Usuario (Firebase) dropdown -->
+        <!-- 👤 Usuario (Firebase) dropdown mejorado -->
         <li class="nav-item dropdown user-menu">
-            <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-                <i class="fas fa-user-circle"></i>
-                <span class="d-none d-md-inline">
+            <a href="#" class="nav-link nav-user-toggle dropdown-toggle" data-toggle="dropdown">
+                <i class="fas fa-user-circle brand-text mr-1"></i>
+                <span class="d-none d-md-inline nav-user-email">
                     {{ session('firebase_user.displayName') ?? session('firebase_user.email') ?? 'Usuario' }}
                 </span>
             </a>
-            <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                <li class="user-header bg-primary text-center">
-                    <i class="fas fa-user-circle fa-3x mb-2"></i>
-                    <p>
-                        {{ session('firebase_user.displayName') ?? session('firebase_user.email') ?? 'Usuario' }}
-                        <small>Sesión activa</small>
+
+            <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right user-dropdown-menu">
+                <!-- Cabecera con gradiente de marca -->
+                <li class="user-header user-header-brand text-center">
+                    <div class="user-avatar-wrapper mb-2">
+                        <i class="fas fa-user-circle fa-4x"></i>
+                    </div>
+                    <p class="mb-0">
+                        <strong>{{ session('firebase_user.email') ?? 'Usuario' }}</strong>
                     </p>
+                    <small>Sesión activa</small>
                 </li>
 
+                <!-- Botón Perfil -->
                 <li class="user-body">
                     <div class="row">
                         <div class="col-12 text-center">
-                            <a href="{{ route('perfil') }}" class="btn btn-default btn-flat">Perfil</a>
+                            <a href="{{ route('perfil') }}"
+                               class="btn btn-sm btn-brand-outline-perfil">
+                                <i class="fas fa-id-badge mr-1"></i> Perfil
+                            </a>
                         </div>
                     </div>
                 </li>
 
+                <!-- Botón Cerrar sesión -->
                 <li class="user-footer">
-                    <a href="{{ route('logout') }}" class="btn btn-danger btn-block">
-                        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                    <a href="{{ route('logout') }}"
+                       class="btn btn-brand-logout btn-block">
+                        <i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión
                     </a>
                 </li>
             </ul>
@@ -174,35 +184,124 @@
 
 {{-- 🎨 Estilos personalizados --}}
 <style>
+    :root{
+        --brand:#e24e60;
+        --brand-100:#fde5e9;
+        --brand-600:#c23c4e;
+        --ink:#2b2f33;
+    }
+
+    /* ===== NAVBAR GENERAL (tamaño original) ===== */
+    .nav-elevated{
+        background: linear-gradient(90deg, #ffffff, #fff7f8);
+        border-bottom:1px solid #e5e7eb;
+        box-shadow:0 2px 8px rgba(15,23,42,0.06);
+        padding-top:0;      /* ← restablecemos tamaño original */
+        padding-bottom:0;   /* ← restablecemos tamaño original */
+        min-height: 56px;   /* ← altura del navbar estándar AdminLTE */
+        display:flex;
+        align-items:center;
+    }
+    .nav-elevated .nav-link{
+        color:#6b7280;
+        font-size:.95rem;
+        padding:.55rem .75rem; /* ← padding original */
+        transition: color .2s ease, background-color .2s ease, transform .15s ease;
+    }
+    .nav-elevated .nav-link .fas{
+        font-size:1rem;
+        color:#9ca3af;
+        transition: color .2s ease, transform .15s ease;
+    }
+    .nav-elevated .nav-link:hover{
+        color:var(--brand);
+        background-color:rgba(226,78,96,0.04);
+    }
+    .nav-elevated .nav-link:hover .fas{
+        color:var(--brand);
+        transform:translateY(-1px);
+    }
+
+    .nav-toggle .fas{
+        font-size:1.1rem;
+    }
+
+    .navbar-badge{
+        font-size:.7rem;
+        padding:.15rem .3rem;
+        border-radius:999px;
+        transform:translateY(-3px);
+    }
+
+    .nav-user-email{
+        max-width:180px;
+        display:inline-block;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+    }
+
+    /* ===== NOTIFICACIONES ===== */
     .dropdown-menu-notifications {
         width: 420px;
         max-height: 420px;
         overflow-y: auto;
         overflow-x: hidden;
-    }
-    .dropdown-item-noti {
-        white-space: normal;
+        border-radius:.75rem;
+        box-shadow:0 10px 24px rgba(15,23,42,0.25);
     }
 
-    /* 🎨 BOTONES ACENTO – COLOR + ANIMACIÓN */
-    .btn-cal.rojo {
-        background-color: #e46a6d !important;   /* color base (armoniza con header) */
-        color: #fff !important;
-        font-weight: bold;
-        border-top: 1px solid #f3a1a3;
+    /* ===== DROPDOWN USER ===== */
+    .user-dropdown-menu{
+        padding:0;
+        overflow:hidden;
+        border-radius:.75rem;
+        box-shadow:0 10px 24px rgba(15,23,42,0.25);
+    }
+    .user-header-brand{
+        background: linear-gradient(135deg, var(--brand), var(--brand-600));
+        color:#fff;
+        padding:1.25rem 1rem 1rem;
+        border-bottom:1px solid rgba(255,255,255,0.22);
+    }
+
+    .btn-brand-outline-perfil{
+        border:1px solid var(--brand);
+        color:var(--brand);
+        background:#fff;
+        font-weight:600;
+        border-radius:999px;
+        padding:.35rem 1.2rem;
         transition:
-            background-color 0.25s ease,
-            transform 0.15s ease,
-            box-shadow 0.15s ease;
+            background-color 0.2s ease,
+            color 0.2s ease,
+            box-shadow 0.15s ease,
+            transform 0.15s ease;
+    }
+    .btn-brand-outline-perfil:hover{
+        background:var(--brand-100);
+        color:var(--brand-600);
+        box-shadow:0 4px 10px rgba(226,78,96,0.25);
+        transform:translateY(-1px);
     }
 
-    .btn-cal.rojo:hover {
-        background-color: #d9534f !important;   /* color más intenso */
-        color: #fff !important;
-        transform: translateY(-1px);
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16);
+    .btn-brand-logout{
+        background:var(--brand);
+        border-color:var(--brand);
+        color:#fff;
+        font-weight:600;
+        border-radius:.6rem;
+        padding:.45rem 1rem;
+        transition: background-color .2s ease, box-shadow .15s ease, transform .15s ease;
+    }
+    .btn-brand-logout:hover{
+        background:var(--brand-600);
+        border-color:var(--brand-600);
+        transform:translateY(-1px);
+        box-shadow:0 4px 12px rgba(226,78,96,0.35);
     }
 </style>
+
 
 <script>
 document.addEventListener('click', function (e) {

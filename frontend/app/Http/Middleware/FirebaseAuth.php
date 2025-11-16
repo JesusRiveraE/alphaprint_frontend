@@ -14,6 +14,11 @@ class FirebaseAuth
             return redirect()->route('login');
         }
 
+        // Registrar la hora en que se inició la sesión (solo la primera vez)
+        if (!session()->has('session_started_at')) {
+            session(['session_started_at' => now('America/Tegucigalpa')]);
+        }
+
         return $next($request);
     }
 }
