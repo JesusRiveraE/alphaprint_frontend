@@ -41,7 +41,8 @@
             <td><span class="tag">
                 {{ \Carbon\Carbon::parse($pedido['fecha_creacion'])->timezone('America/Tegucigalpa')->format('d/m/Y H:i:s') }}
             </span></td></tr>
-        <tr><th>Fecha de Entrega</th><td>{{ $pedido['fecha_entrega'] ?? '—' }}</td></tr>
+        <tr><th>Fecha de Entrega</th><td><span class="tag">
+            {{ \Carbon\Carbon::parse($pedido['fecha_entrega'])->timezone('America/Tegucigalpa')->format('d/m/Y H:i:s') }}</span></td></tr>
     </table>
 </main>
 
