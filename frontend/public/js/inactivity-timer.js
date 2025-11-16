@@ -23,7 +23,7 @@ if (isExcluded) {
   /*  Configuración                                                           */
   /* ------------------------------------------------------------------------ */
   // 15 minutos (en ms). Para pruebas cortas puedes bajarlo (p. ej., 10_000).
-  const INACTIVITY_TIMEOUT = 100000;
+  const INACTIVITY_TIMEOUT = 7200000;
 
   let inactivityTimer = null;
   let listenersAttached = false;
