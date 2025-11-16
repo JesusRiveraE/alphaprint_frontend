@@ -2,7 +2,17 @@
 
 @push('css')
     <link rel="stylesheet" href="{{ asset('css/custom-login.css') }}">
+
+    <style>
+        /* Forzar color #2A363B a AlphaPrint y todo lo interno */
+        .login-logo a,
+        .login-logo a * {
+            color: #2A363B !important;
+        }
+    </style>
 @endpush
+
+
 
 @section('auth_header', 'Iniciar Sesión')
 
@@ -37,62 +47,47 @@
     </div>
 </form>
 
-<p class="mb-1 mt-3">
-    <a href="#" id="forgotPassword">Olvidé mi contraseña</a>
-</p>
+{{-- 🔥 ENLACE "Olvidé mi contraseña" ELIMINADO COMPLETAMENTE --}}
 @stop
 
-{{-- ... (auth_footer sin cambios) ... --}}
 
 @push('js')
 <!-- Cargar primero firebase.js -->
 <script type="module" src="{{ asset('js/firebase.js') }}"></script>
 
 <script type="module">
-    // PASO 1: Importar las funciones que necesitamos del SDK de Firebase
     import { signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
     
-    // PASO 2: Usar la instancia global de Firebase inicializada desde firebase.js
     const firebaseAuth = window.firebaseAuth;
 
-    // PASO 3: Lógica de la página
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('loginForm');
-        const forgot = document.getElementById('forgotPassword');
-        const passwordInput = document.getElementById('password'); // 🔰 Definimos el input aquí para reusarlo
+        const passwordInput = document.getElementById('password');
 
-        // 🔰🔰 INICIO: Lógica para mostrar/ocultar contraseña 🔰🔰
         const togglePassword = document.getElementById('togglePassword');
         const toggleIcon = document.getElementById('toggleIcon');
 
         if (togglePassword) {
             togglePassword.addEventListener('click', function() {
-                // Cambia el tipo del input
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
 
-                // Cambia el ícono del ojo
                 if (type === 'text') {
-                    // Ojo tachado
                     toggleIcon.classList.remove('fa-eye');
                     toggleIcon.classList.add('fa-eye-slash');
                 } else {
-                    // Ojo normal
                     toggleIcon.classList.remove('fa-eye-slash');
                     toggleIcon.classList.add('fa-eye');
                 }
             });
         }
-        // 🔰🔰 FIN: Lógica para mostrar/ocultar contraseña 🔰🔰
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
-            const pass = passwordInput.value; // 🔰 Usamos la variable que ya definimos
+            const pass = passwordInput.value;
 
             try {
-                // ... (el resto de tu lógica de login de Firebase) ...
-                
                 const { user } = await signInWithEmailAndPassword(firebaseAuth, email, pass);
                 const token = await user.getIdToken();
 
@@ -125,7 +120,6 @@
 
                 let mensajeParaElUsuario = "Ocurrió un error inesperado. Intenta de nuevo.";
 
-                // "Traducimos" el código de error de Firebase
                 switch (err.code) {
                     case 'auth/user-not-found':
                     case 'auth/wrong-password':
@@ -137,28 +131,17 @@
                         mensajeParaElUsuario = "El formato del correo electrónico no es válido.";
                         break;
                     case 'auth/too-many-requests':
-                        mensajeParaElUsuario = "Detectamos demasiados intentos fallidos. Su cuenta ha sido bloqueada temporalmente. Intente de nuevo más tarde.";
+                        mensajeParaElUsuario = "Demasiados intentos fallidos. Intente más tarde.";
                         break; 
                     case 'auth/user-disabled':
-                        mensajeParaElUsuario = "Esta cuenta ha sido deshabilitada por un administrador.";
+                        mensajeParaElUsuario = "Esta cuenta ha sido deshabilitada.";
                         break;
                     case 'auth/network-request-failed':
-                        mensajeParaElUsuario = "Error de red. Revisa tu conexión a internet.";
+                        mensajeParaElUsuario = "Error de red. Revisa tu conexión.";
                         break;
                 }
 
                 alert(mensajeParaElUsuario);
-            }
-        });
-
-        forgot.addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            if (!email) return alert("Ingresa tu correo");
-            try {
-                await sendPasswordResetEmail(firebaseAuth, email);
-                alert("Correo de recuperación enviado");
-            } catch (err) {
-                alert(err.message);
             }
         });
     });
