@@ -124,11 +124,14 @@
                                 <i class="fas fa-edit"></i>
                             </a>
 
-                            {{-- Eliminar seguro con formulario DELETE --}}
+                            {{-- Eliminar con confirmación mediante modal --}}
                             <form action="{{ route('pedidos.destroy', $item['id_pedido']) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-xs btn-outline-danger btn-delete">
+                                <button type="submit"
+                                        class="btn btn-xs btn-outline-danger btn-delete"
+                                        data-id="{{ $item['id_pedido'] }}"
+                                        data-cliente="{{ $item['cliente_nombre'] ?? $item['id_cliente'] }}">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -145,7 +148,7 @@
             </table>
         </div>
 
-        {{-- PAGINACIÓN FRONTEND COMO EN NOTIFICACIONES --}}
+        {{-- PAGINACIÓN FRONTEND --}}
         <div class="d-flex justify-content-between align-items-center mt-3" id="paginacion-pedidos-container">
             <small class="text-muted" id="pedidos-paginacion-info"></small>
             <div>
@@ -232,29 +235,74 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
+<div class="modal fade" id="modalConfirmDelete" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content modal-confirm-alpha">
+
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title brand-text">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Confirmar eliminación
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body text-center">
+                <div class="icon-circle mb-3">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+
+                <p class="mb-1">
+                    ¿Seguro que deseas eliminar el pedido
+                    <strong>#<span id="modal-pedido-id"></span></strong>?
+                </p>
+                <p class="mb-2">
+                    Cliente:
+                    <strong><span id="modal-pedido-cliente"></span></strong>
+                </p>
+                <p class="text-muted small mb-0">
+                    Esta acción es permanente y no podrás recuperar el pedido después de eliminarlo.
+                </p>
+            </div>
+
+            <div class="modal-footer border-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger-brand" id="btnConfirmDelete">
+                    <i class="fas fa-trash mr-1"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @stop
 
 @section('css')
 <style>
-:root{ 
-    --brand:#e24e60; 
-    --brand-100:#fde5e9; 
+:root{
+    --brand:#e24e60;
+    --brand-100:#fde5e9;
 }
 
 /* --- ESTILOS GENERALES --- */
-.brand-text{ 
-    color:var(--brand); 
+.brand-text{
+    color:var(--brand);
 }
-.card-soft{ 
-    border:1px solid #eff1f5; 
-    border-radius:.6rem; 
+.card-soft{
+    border:1px solid #eff1f5;
+    border-radius:.6rem;
 }
-.card-soft:hover{ 
-    box-shadow:0 0 15px rgba(226,78,96,.08); 
+.card-soft:hover{
+    box-shadow:0 0 15px rgba(226,78,96,.08);
 }
-.border-brand{ 
-    border-left:4px solid var(--brand); 
-    background:#fff; 
+.border-brand{
+    border-left:4px solid var(--brand);
+    background:#fff;
 }
 .badge-chip{
     background:var(--brand-100);
@@ -274,8 +322,6 @@
     background:#fde5e9;
     color:var(--brand);
 }
-
-/* ⭐ ESTE ES EL QUE FALTABA (BOTÓN ROJO RELLENO) */
 .btn-brand{
     background: var(--brand);
     border-color: var(--brand);
@@ -287,11 +333,11 @@
     color: #fff;
 }
 
-.dropdown-item{ 
-    font-size:.9rem; 
+.dropdown-item{
+    font-size:.9rem;
 }
 
-/* --- ESTILO DEL MODAL (igual al de Notificaciones) --- */
+/* --- MODAL BÚSQUEDA --- */
 #modalBusquedaPedidos .modal-content{
     border-radius:.6rem;
 }
@@ -319,6 +365,48 @@
 #modalBusquedaPedidos .form-text{
     font-size:.75rem;
     color:#9ca3af;
+}
+
+/* --- MODAL CONFIRMACIÓN ELIMINACIÓN --- */
+.modal-confirm-alpha{
+    border-radius:.8rem;
+    overflow:hidden;
+    box-shadow:0 15px 35px rgba(15,23,42,0.2);
+}
+.modal-confirm-alpha .modal-body{
+    padding-top:1rem;
+    padding-bottom:1.25rem;
+}
+.icon-circle{
+    width:72px;
+    height:72px;
+    border-radius:50%;
+    background:var(--brand-100);
+    color:var(--brand);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.8rem;
+    margin:0 auto;
+}
+.btn-danger-brand{
+    background:#e24e60;
+    border-color:#e24e60;
+    color:#fff;
+    font-weight:600;
+    border-radius:.5rem;
+    padding:.45rem 1.2rem;
+    transition:
+        background-color .2s ease,
+        box-shadow .15s ease,
+        transform .15s ease;
+}
+.btn-danger-brand:hover{
+    background:#c23c4e;
+    border-color:#c23c4e;
+    color:#fff;
+    box-shadow:0 6px 14px rgba(226,78,96,0.35);
+    transform:translateY(-1px);
 }
 </style>
 @stop
@@ -371,15 +459,43 @@
     });
 
     /* ============================
-     * CONFIRMAR ELIMINACIÓN
+     * CONFIRMAR ELIMINACIÓN (MODAL)
      * ============================ */
-    document.querySelectorAll('.delete-form').forEach(f=>{
-        f.addEventListener('submit', (e)=>{
-            if(!confirm('¿Seguro que deseas eliminar este pedido?')) {
-                e.preventDefault();
+    let formToSubmit = null;
+    const modalEl      = document.getElementById('modalConfirmDelete');
+    const spanId       = document.getElementById('modal-pedido-id');
+    const spanCliente  = document.getElementById('modal-pedido-cliente');
+    const btnConfirm   = document.getElementById('btnConfirmDelete');
+
+    // Al hacer clic en el botón de eliminar → abrir modal
+    document.querySelectorAll('.btn-delete').forEach(btn=>{
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+
+            formToSubmit = this.closest('form');
+
+            const id      = this.dataset.id || '';
+            const cliente = this.dataset.cliente || '';
+
+            if (spanId)      spanId.textContent = id;
+            if (spanCliente) spanCliente.textContent = cliente;
+
+            if (window.$) {
+                $('#modalConfirmDelete').modal('show');
+            } else if (modalEl) {
+                modalEl.style.display = 'block';
             }
         });
     });
+
+    // Botón "Eliminar" del modal → envía el formulario real
+    if (btnConfirm) {
+        btnConfirm.addEventListener('click', function(){
+            if (formToSubmit) {
+                formToSubmit.submit();
+            }
+        });
+    }
 
     /* ============================
      * PAGINACIÓN + SELECTOR FILAS
