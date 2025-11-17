@@ -9,118 +9,126 @@
 @stop
 
 @section('content')
-<div class="card card-soft shadow-sm">
-    <div class="card-header border-brand d-flex align-items-center justify-content-between">
-        <strong class="brand-text mb-0">
-            <i class="fas fa-id-badge mr-2"></i> Datos del Empleado
-        </strong>
 
-        {{-- 🔹 Botón para volver a la tabla de empleados --}}
-        <a href="{{ route('empleados.index') }}" class="btn btn-sm btn-brand-outline">
-            <i class="fas fa-list mr-1"></i> Ver listado
-        </a>
-    </div>
+    {{-- ✅ Franja verde al crear (si vienes con ?success=created o similar) --}}
+    @if(request()->has('success'))
+        <div class="alert alert-success mb-3">
+            {{ request('success') === 'created'
+                ? 'Empleado creado con éxito'
+                : 'Operación realizada correctamente' }}
+        </div>
+    @endif
 
-    <div class="card-body">
-        {{-- (Opcional) Mensajes de error de validación --}}
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-            <hr>
-        @endif
+    <div class="card card-soft shadow-sm">
+        <div class="card-header border-brand d-flex align-items-center justify-content-between">
+            <strong class="brand-text mb-0">
+                <i class="fas fa-id-badge mr-2"></i> Datos del Empleado
+            </strong>
 
-        <form action="{{ route('empleados.store') }}" method="POST">
-            @csrf
-            <input type="hidden" name="firebase_token" id="firebase_token">
+            {{-- 🔹 Botón para volver a la tabla de empleados --}}
+            <a href="{{ route('empleados.index') }}" class="btn btn-sm btn-brand-outline">
+                <i class="fas fa-list mr-1"></i> Ver listado
+            </a>
+        </div>
 
-
-            <div class="form-row">
-                {{-- NOMBRE (PERSONAL.nombre) --}}
-                <div class="form-group col-md-6">
-                    <label class="label-brand">Nombre</label>
-                    <input
-                        type="text"
-                        name="nombre"
-                        value="{{ old('nombre') }}"
-                        class="form-control"
-                        required
-                    >
-                </div>
-
-                {{-- TELEFONO (PERSONAL.telefono) --}}
-                <div class="form-group col-md-6">
-                    <label class="label-brand">Teléfono</label>
-                    <input
-                        type="text"
-                        name="telefono"
-                        value="{{ old('telefono') }}"
-                        class="form-control"
-                    >
-                </div>
-
-                {{-- AREA (ENUM de PERSONAL.area) --}}
-                <div class="form-group col-md-6">
-                    <label class="label-brand">Área</label>
-                    @php
-                        // Deben coincidir EXACTAMENTE con el ENUM y con M4_* (área válida) 
-                        $areasEnum = [
-                            'Diseño gráfico',
-                            'Sala de ventas',
-                            'Taller de encuadernación',
-                            'Taller corte CNC',
-                            'Taller de corte y soldadura',
-                            'Taller de acabados',
-                            'Otro',
-                        ];
-                        $areaActual = old('area');
-                    @endphp
-                    <select name="area" class="form-control custom-select" required>
-                        <option value="">Seleccione un área...</option>
-                        @foreach($areasEnum as $area)
-                            <option value="{{ $area }}"
-                                {{ $areaActual === $area ? 'selected' : '' }}>
-                                {{ $area }}
-                            </option>
+        <div class="card-body">
+            {{-- (Opcional) Mensajes de error de validación --}}
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
                         @endforeach
-                    </select>
+                    </ul>
+                </div>
+                <hr>
+            @endif
+
+            <form action="{{ route('empleados.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="firebase_token" id="firebase_token">
+
+                <div class="form-row">
+                    {{-- NOMBRE (PERSONAL.nombre) --}}
+                    <div class="form-group col-md-6">
+                        <label class="label-brand">Nombre</label>
+                        <input
+                            type="text"
+                            name="nombre"
+                            value="{{ old('nombre') }}"
+                            class="form-control"
+                            required
+                        >
+                    </div>
+
+                    {{-- TELEFONO (PERSONAL.telefono) --}}
+                    <div class="form-group col-md-6">
+                        <label class="label-brand">Teléfono</label>
+                        <input
+                            type="text"
+                            name="telefono"
+                            value="{{ old('telefono') }}"
+                            class="form-control"
+                        >
+                    </div>
+
+                    {{-- AREA (ENUM de PERSONAL.area) --}}
+                    <div class="form-group col-md-6">
+                        <label class="label-brand">Área</label>
+                        @php
+                            // Deben coincidir EXACTAMENTE con el ENUM y con M4_* (área válida) 
+                            $areasEnum = [
+                                'Diseño gráfico',
+                                'Sala de ventas',
+                                'Taller de encuadernación',
+                                'Taller corte CNC',
+                                'Taller de corte y soldadura',
+                                'Taller de acabados',
+                                'Otro',
+                            ];
+                            $areaActual = old('area');
+                        @endphp
+                        <select name="area" class="form-control custom-select" required>
+                            <option value="">Seleccione un área...</option>
+                            @foreach($areasEnum as $area)
+                                <option value="{{ $area }}"
+                                    {{ $areaActual === $area ? 'selected' : '' }}>
+                                    {{ $area }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- USUARIO ASOCIADO (PERSONAL.id_usuario -> USUARIOS.id_usuario) --}}
+                    <div class="form-group col-md-6">
+                        <label class="label-brand">Usuario asociado</label>
+
+                        <select
+                            id="id_usuario-select"
+                            name="id_usuario"
+                            class="form-control custom-select"
+                            required
+                        >
+                            <option value="">Cargando usuarios...</option>
+                        </select>
+
+                        <small class="form-text text-muted">
+                            Los usuarios se crean en el módulo USUARIOS. Aquí solo se asocian al empleado.
+                        </small>
+                    </div>
                 </div>
 
-                {{-- USUARIO ASOCIADO (PERSONAL.id_usuario -> USUARIOS.id_usuario) --}}
-<div class="form-group col-md-6">
-    <label class="label-brand">Usuario asociado</label>
-
-    <select
-        id="id_usuario-select"
-        name="id_usuario"
-        class="form-control custom-select"
-        required
-    >
-        <option value="">Cargando usuarios...</option>
-    </select>
-
-    <small class="form-text text-muted">
-        Los usuarios se crean en el módulo USUARIOS. Aquí solo se asocian al empleado.
-    </small>
-</div>
-
-            </div>
-
-            <div class="d-flex justify-content-end">
-                <a href="{{ route('empleados.index') }}" class="btn btn-sm btn-outline-secondary mr-2">
-                    <i class="fas fa-arrow-left mr-1"></i> Volver
-                </a>
-                <button type="submit" class="btn btn-sm btn-brand">
-                    <i class="fas fa-save mr-1"></i> Guardar
-                </button>
-            </div>
-        </form>
+                <div class="d-flex justify-content-end">
+                    <a href="{{ route('empleados.index') }}" class="btn btn-sm btn-outline-secondary mr-2">
+                        <i class="fas fa-arrow-left mr-1"></i> Volver
+                    </a>
+                    <button type="submit" class="btn btn-sm btn-brand">
+                        <i class="fas fa-save mr-1"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 @stop
 
 @section('css')
@@ -174,6 +182,8 @@
     color:var(--brand);
 }
 </style>
+@stop
+
 @push('js')
 <script type="module">
     import { authReady, authorizedFetch, getIdToken } from "{{ asset('js/firebase.js') }}";
@@ -246,7 +256,3 @@
     });
 </script>
 @endpush
-
-
-
-@stop
