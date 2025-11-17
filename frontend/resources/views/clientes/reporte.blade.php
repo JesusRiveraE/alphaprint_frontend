@@ -139,6 +139,34 @@
     </style>
 </head>
 <body>
+    {{-- Preformateo seguro de la fecha de creación --}}
+    @php
+        use Carbon\Carbon;
+
+        $fechaCreacionFormateada = 'Sin fecha';
+
+        if (!empty($cliente['fecha_creacion'] ?? null)) {
+            $raw = $cliente['fecha_creacion'];
+
+            try {
+                // Sabemos que viene como "17/11/2025 12:34:36" => d/m/Y H:i:s
+                $fechaCreacionFormateada = Carbon::createFromFormat('d/m/Y H:i:s', $raw)
+                    ->timezone('America/Tegucigalpa')
+                    ->format('d/m/Y H:i:s');
+            } catch (\Exception $e) {
+                // Fallback: intento parse genérico
+                try {
+                    $fechaCreacionFormateada = Carbon::parse($raw)
+                        ->timezone('America/Tegucigalpa')
+                        ->format('d/m/Y H:i:s');
+                } catch (\Exception $e2) {
+                    // Último recurso: mostrar el valor tal cual
+                    $fechaCreacionFormateada = $raw;
+                }
+            }
+        }
+    @endphp
+
     {{-- ENCABEZADO CON LOGO (MISMO LLAMADO QUE EN LOS OTROS REPORTES) --}}
     <header>
         <img src="{{ public_path('vendor/adminlte/dist/img/AdminLTELogo.png') }}" alt="Logo">
@@ -173,9 +201,7 @@
                     <th>Fecha de Creación</th>
                     <td>
                         <span class="tag">
-                            {{ \Carbon\Carbon::parse($cliente['fecha_creacion'])
-                                ->timezone('America/Tegucigalpa')
-                                ->format('d/m/Y H:i:s') }}
+                            {{ $fechaCreacionFormateada }}
                         </span>
                     </td>
                 </tr>

@@ -23,9 +23,17 @@
             <div class="col-md-6 mb-4">
                 <span class="text-muted d-block" style="font-size: 1rem;">Fecha Creación</span>
                 <span class="badge badge-chip" style="font-size: 1rem;">
-                    {{ \Carbon\Carbon::parse($cliente['fecha_creacion'])
-                        ->timezone('America/Tegucigalpa')
-                        ->format('d/m/Y H:i:s') }}
+                    @php
+                        $fechaRaw = $cliente['fecha_creacion'] ?? null;
+                    @endphp
+
+                    @if (!empty($fechaRaw))
+                        {{ \Carbon\Carbon::createFromFormat('d/m/Y H:i:s', $fechaRaw)
+                                ->timezone('America/Tegucigalpa')
+                                ->format('d/m/Y H:i:s') }}
+                    @else
+                        Sin fecha
+                    @endif
                 </span>
             </div>
 
