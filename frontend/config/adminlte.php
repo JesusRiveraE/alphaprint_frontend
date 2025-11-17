@@ -51,11 +51,11 @@ return [
     'auth_logo' => [
         'enabled' => false,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt'  => 'Auth Logo',
-            'class'=> '',
-            'width'=> 50,
-            'height'=> 50,
+            'path'   => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'alt'    => 'Auth Logo',
+            'class'  => '',
+            'width'  => 50,
+            'height' => 50,
         ],
     ],
 
@@ -67,13 +67,13 @@ return [
 
     'preloader' => [
         'enabled' => true,
-        'mode' => 'fullscreen',
-        'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
-            'alt'  => 'Alpha Print',
+        'mode'    => 'fullscreen',
+        'img'     => [
+            'path'   => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'alt'    => 'Alpha Print',
             'effect' => 'animation__shake',
-            'width' => 60,
-            'height'=> 60,
+            'width'  => 60,
+            'height' => 60,
         ],
     ],
 
@@ -83,12 +83,12 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'usermenu_enabled' => true,
-    'usermenu_header' => false,
+    'usermenu_enabled'      => true,
+    'usermenu_header'       => false,
     'usermenu_header_class' => 'bg-primary',
-    'usermenu_image' => false,
-    'usermenu_desc' => false,
-    'usermenu_profile_url' => false,
+    'usermenu_image'        => false,
+    'usermenu_desc'         => false,
+    'usermenu_profile_url'  => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -96,12 +96,12 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'layout_topnav' => null,
-    'layout_boxed' => null,
+    'layout_topnav'        => null,
+    'layout_boxed'         => null,
     'layout_fixed_sidebar' => true,
-    'layout_fixed_navbar' => null,
-    'layout_fixed_footer' => null,
-    'layout_dark_mode' => null,
+    'layout_fixed_navbar'  => null,
+    'layout_fixed_footer'  => null,
+    'layout_dark_mode'     => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -109,17 +109,17 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'classes_body' => '',
-    'classes_brand' => '',
-    'classes_brand_text' => '',
+    'classes_body'            => '',
+    'classes_brand'           => '',
+    'classes_brand_text'      => '',
     'classes_content_wrapper' => '',
-    'classes_content_header' => '',
-    'classes_content' => '',
-    'classes_sidebar' => 'sidebar-dark-primary elevation-4',
-    'classes_sidebar_nav' => '',
-    'classes_topnav' => 'navbar-white navbar-light',
-    'classes_topnav_nav' => 'navbar-expand',
-    'classes_topnav_container' => 'container',
+    'classes_content_header'  => '',
+    'classes_content'         => '',
+    'classes_sidebar'         => 'sidebar-dark-primary elevation-4',
+    'classes_sidebar_nav'     => '',
+    'classes_topnav'          => 'navbar-white navbar-light',
+    'classes_topnav_nav'      => 'navbar-expand',
+    'classes_topnav_container'=> 'container',
 
     /*
     |--------------------------------------------------------------------------
@@ -127,12 +127,12 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'sidebar_mini' => 'lg',
-    'sidebar_collapse' => false,
-    'sidebar_scrollbar_theme' => 'os-theme-light',
-    'sidebar_scrollbar_auto_hide' => 'l',
-    'sidebar_nav_accordion' => true,
-    'sidebar_nav_animation_speed' => 300,
+    'sidebar_mini'                  => 'lg',
+    'sidebar_collapse'              => false,
+    'sidebar_scrollbar_theme'       => 'os-theme-light',
+    'sidebar_scrollbar_auto_hide'   => 'l',
+    'sidebar_nav_accordion'         => true,
+    'sidebar_nav_animation_speed'   => 300,
 
     /*
     |--------------------------------------------------------------------------
@@ -140,15 +140,15 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'use_route_url' => false,
-    'dashboard_url' => 'home',
-    'logout_url' => 'logout',
-    'login_url' => 'login',
-    'register_url' => 'register',
-    'password_reset_url' => 'password/reset',
-    'password_email_url' => 'password/email',
-    'profile_url' => false,
-    'disable_darkmode_routes' => false,
+    'use_route_url'          => false,
+    'dashboard_url'          => 'home',
+    'logout_url'             => 'logout',
+    'login_url'              => 'login',
+    'register_url'           => 'register',
+    'password_reset_url'     => 'password/reset',
+    'password_email_url'     => 'password/email',
+    'profile_url'            => false,
+    'disable_darkmode_routes'=> false,
 
     /*
     |--------------------------------------------------------------------------
@@ -157,8 +157,8 @@ return [
     */
 
     'laravel_asset_bundling' => false,
-    'laravel_css_path' => 'css/app.css',
-    'laravel_js_path'  => 'js/app.js',
+    'laravel_css_path'       => 'css/app.css',
+    'laravel_js_path'        => 'js/app.js',
 
     /*
     |--------------------------------------------------------------------------
@@ -172,7 +172,7 @@ return [
             'text' => 'Buscar...',
         ],
 
-        // 🔔 Notificaciones
+        // 🔔 Notificaciones (visible para todos los logueados)
         [
             'text' => 'Notificaciones',
             'url'  => 'notificaciones',
@@ -207,49 +207,58 @@ return [
             'icon' => 'fas fa-history',
         ],
 
-        // 🧭 Separador
-        ['header' => 'ADMINISTRACIÓN'],
+        // 🧭 Separador ADMINISTRACIÓN (solo Admin)
+        [
+            'header' => 'ADMINISTRACIÓN',
+            'can'    => 'is-admin',
+        ],
 
-        // 🏠 Dashboard
+        // 🏠 Dashboard (solo Admin)
         [
             'text' => 'Dashboard',
             'url'  => 'home',
             'icon' => 'fas fa-tachometer-alt',
+            'can'  => 'is-admin',
         ],
 
-        // ⭐ Valoraciones
+        // ⭐ Valoraciones (solo Admin)
         [
             'text' => 'Valoraciones',
             'url'  => 'valoraciones',
             'icon' => 'fas fa-star',
+            'can'  => 'is-admin',
         ],
 
-        // 👤 Usuarios
+        // 👤 Usuarios (solo Admin)
         [
             'text' => 'Usuarios',
             'url'  => 'usuarios',
             'icon' => 'fas fa-user',
+            'can'  => 'is-admin',
         ],
 
-        // 👷 Empleados
+        // 👷 Empleados (solo Admin)
         [
             'text' => 'Empleados',
             'url'  => 'empleados',
             'icon' => 'fas fa-user-tie',
+            'can'  => 'is-admin',
         ],
 
-        // 🧾 Clientes
+        // 🧾 Clientes (solo Admin)
         [
             'text' => 'Clientes',
             'url'  => 'clientes',
             'icon' => 'fas fa-users',
+            'can'  => 'is-admin',
         ],
 
-        // 📚 Bitácora
+        // 📚 Bitácora (solo Admin)
         [
             'text' => 'Bitácora',
             'url'  => 'bitacora',
             'icon' => 'fas fa-clipboard-list',
+            'can'  => 'is-admin',
         ],
     ],
 
@@ -260,11 +269,12 @@ return [
     */
 
     'filters' => [
-        JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\HrefFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\SearchFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\ActiveFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter::class,
+        // 🔐 Imprescindible para usar 'can' => 'is-admin'
+        JeroenNoten\LaravelAdminLte\Menu\Filters\GateFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter::class,
     ],
@@ -280,54 +290,43 @@ return [
             'active' => true,
             'files' => [
                 [
-                    'type' => 'js',
-                    'asset' => false,
+                    'type'   => 'js',
+                    'asset'  => false,
                     'location' => '//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => false,
+                    'type'   => 'js',
+                    'asset'  => false,
                     'location' => '//cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js',
                 ],
                 [
-                    'type' => 'css',
-                    'asset' => false,
+                    'type'   => 'css',
+                    'asset'  => false,
                     'location' => '//cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css',
                 ],
             ],
         ],
+
         'Chartjs' => [
             'active' => true,
             'files' => [
                 [
-                    'type' => 'js',
-                    'asset' => false,
+                    'type'   => 'js',
+                    'asset'  => false,
                     'location' => '//cdn.jsdelivr.net/npm/chart.js',
                 ],
             ],
         ],
+
         'InactivityTimer' => [
             'active' => true,
-            'files' => [
-                // Primero Firebase
+            'files'  => [
+                // 👇 Solo el temporizador; firebase.js ya se carga en master.blade.php
                 [
-                    'type' => 'js', 
-                    'asset' => true,
-                    'location' => 'js/firebase.js',
-                    'attributes' => [
-                        'type' => 'module', 
-                        'async' => true,
-                        'defer' => true,
-                    ],
-                ],
-                // Luego el temporizador
-                [
-                    'type' => 'js', 
-                    'asset' => true,
-                    'location' => 'js/inactivity-timer.js',
-                    'attributes' => [
-                        'type' => 'module', 
-                        'async' => true,
+                    'type'      => 'js',
+                    'asset'     => true,
+                    'location'  => 'js/inactivity-timer.js',
+                    'attributes'=> [
                         'defer' => true,
                     ],
                 ],
@@ -343,20 +342,20 @@ return [
 
     'iframe' => [
         'default_tab' => [
-            'url' => null,
+            'url'   => null,
             'title' => null,
         ],
         'buttons' => [
-            'close' => true,
-            'close_all' => true,
-            'close_all_other' => true,
-            'scroll_left' => true,
-            'scroll_right' => true,
-            'fullscreen' => true,
+            'close'            => true,
+            'close_all'        => true,
+            'close_all_other'  => true,
+            'scroll_left'      => true,
+            'scroll_right'     => true,
+            'fullscreen'       => true,
         ],
         'options' => [
-            'loading_screen' => 1000,
-            'auto_show_new_tab' => true,
+            'loading_screen'   => 1000,
+            'auto_show_new_tab'=> true,
             'use_navbar_items' => true,
         ],
     ],

@@ -77,7 +77,7 @@
                 <i class="fas fa-calendar-alt"></i>
                 @php $countCalendar = count($navbar_entregas ?? []); @endphp
                 @if($countCalendar > 0)
-                    <span class="badge badge-info navbar-badge">{{ $countCalendar }}</span>
+                    <span class="badge navbar-badge badge-info">{{ $countCalendar }}</span>
                 @endif
             </a>
             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right p-0" style="min-width: 320px;">
@@ -172,7 +172,8 @@
 
                 <!-- Botón Cerrar sesión -->
                 <li class="user-footer">
-                    <a href="{{ route('logout') }}"
+                    <a href="#"
+                       id="btn-logout"
                        class="btn btn-brand-logout btn-block">
                         <i class="fas fa-sign-out-alt mr-1"></i> Cerrar sesión
                     </a>
@@ -191,21 +192,20 @@
         --ink:#2b2f33;
     }
 
-    /* ===== NAVBAR GENERAL (tamaño original) ===== */
     .nav-elevated{
         background: linear-gradient(90deg, #ffffff, #fff7f8);
         border-bottom:1px solid #e5e7eb;
         box-shadow:0 2px 8px rgba(15,23,42,0.06);
-        padding-top:0;      /* ← restablecemos tamaño original */
-        padding-bottom:0;   /* ← restablecemos tamaño original */
-        min-height: 56px;   /* ← altura del navbar estándar AdminLTE */
+        padding-top:0;
+        padding-bottom:0;
+        min-height: 56px;
         display:flex;
         align-items:center;
     }
     .nav-elevated .nav-link{
         color:#6b7280;
         font-size:.95rem;
-        padding:.55rem .75rem; /* ← padding original */
+        padding:.55rem .75rem;
         transition: color .2s ease, background-color .2s ease, transform .15s ease;
     }
     .nav-elevated .nav-link .fas{
@@ -241,17 +241,15 @@
         text-overflow:ellipsis;
     }
 
-    /* ===== NOTIFICACIONES ===== */
     .dropdown-menu-notifications {
-        width: 420px;
-        max-height: 420px;
-        overflow-y: auto;
+        width: 450px !important;
+        max-height: 480px !important;
+        overflow-y: auto !important;
         overflow-x: hidden;
         border-radius:.75rem;
         box-shadow:0 10px 24px rgba(15,23,42,0.25);
     }
 
-    /* ===== DROPDOWN USER ===== */
     .user-dropdown-menu{
         padding:0;
         overflow:hidden;
@@ -301,34 +299,27 @@
         box-shadow:0 4px 12px rgba(226,78,96,0.35);
     }
 
-    /* ==== FIX: Notificaciones que se cortan ==== */
-.dropdown-item-noti {
-    white-space: normal !important;
-    overflow-wrap: break-word !important;
-    word-wrap: break-word !important;
-    max-width: 100% !important;
-    line-height: 1.2rem;
-    align-items: flex-start !important;
-    padding-top: .75rem;
-    padding-bottom: .75rem;
-}
+    .dropdown-item-noti {
+        white-space: normal !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+        max-width: 100% !important;
+        line-height: 1.2rem;
+        align-items: flex-start !important;
+        padding-top: .75rem;
+        padding-bottom: .75rem;
+    }
 
-.dropdown-item-noti .flex-fill {
-    white-space: normal !important;
-    overflow: visible !important;
-}
-
-.dropdown-menu-notifications {
-    width: 450px !important;        /* un poco más amplio */
-    max-height: 480px !important;   /* scroll más cómodo */
-    overflow-y: auto !important;
-}
-
-
+    .dropdown-item-noti .flex-fill {
+        white-space: normal !important;
+        overflow: visible !important;
+    }
 </style>
 
-
 <script>
+/**
+ * Marcar notificaciones como leídas (AJAX)
+ */
 document.addEventListener('click', function (e) {
     if (e.target.closest('.btn-mark-read')) {
         const btn = e.target.closest('.btn-mark-read');
@@ -363,5 +354,28 @@ document.addEventListener('click', function (e) {
             alert('No se pudo marcar la notificación como leída.');
         });
     }
+});
+
+/**
+ * Cerrar sesión: Firebase + Laravel
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('btn-logout');
+    if (!btn) return;
+
+    btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        try {
+            if (window.firebaseSignOut) {
+                await window.firebaseSignOut();
+            } else {
+                window.location.href = "{{ route('logout') }}";
+            }
+        } catch (err) {
+            console.error('Error al cerrar sesión:', err);
+            window.location.href = "{{ route('logout') }}";
+        }
+    });
 });
 </script>

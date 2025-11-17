@@ -138,6 +138,7 @@ return [
         'PDF' => Barryvdh\DomPDF\Facade\Pdf::class,
         'Str' => Illuminate\Support\Str::class,
         'View' => Illuminate\Support\Facades\View::class, // 👈 agregado
+        'Auth' => Illuminate\Support\Facades\Auth::class,
     ],
 ];
 

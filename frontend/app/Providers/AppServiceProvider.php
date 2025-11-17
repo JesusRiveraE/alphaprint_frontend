@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Gate;
 use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,7 +24,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // 🔹 Compositor global: Notificaciones (solo no leídas) y Entregas próximas
+        /* ============================================================
+         * 🔐 GATES PARA ROLES (se usan en config/adminlte.php con 'can')
+         * ==========================================================*/
+        Gate::define('is-admin', function ($user = null) {
+            // AdminLTE/GateFilter usará esta habilidad
+            return Session::get('db_user_role') === 'Admin';
+        });
+
+        Gate::define('is-empleado', function ($user = null) {
+            return Session::get('db_user_role') === 'Empleado';
+        });
+
+        /* ============================================================
+         * 🌐 COMPOSER GLOBAL: NOTIFICACIONES Y PRÓXIMAS ENTREGAS
+         * ==========================================================*/
         View::composer('*', function ($view) {
             // -------------------------------
             // 🔸 NOTIFICACIONES (solo no leídas para el dropdown)
@@ -45,7 +60,7 @@ class AppServiceProvider extends ServiceProvider
                 ->values()
                 ->all();
 
-            // 🔔 AHORA: TODAS las no leídas se envían al navbar (sin límite)
+            // 🔔 Todas las no leídas al navbar (el scroll hace el resto)
             $navbar_notificaciones = $noLeidasAll;
 
             // Conteo total de no leídas para el badge
@@ -84,14 +99,9 @@ class AppServiceProvider extends ServiceProvider
 
             // Pasar a todas las vistas
             $view->with([
-                // 🔔 Todas las NO leídas para el dropdown (tu scroll se encarga del resto)
-                'navbar_notificaciones'         => $navbar_notificaciones,
-
-                // 🔢 Conteo real de no leídas (para el badge)
-                'navbar_notificaciones_badge'   => $navbar_notificaciones_badge,
-
-                // 📅 Próximas entregas
-                'navbar_entregas'               => $entregas,
+                'navbar_notificaciones'       => $navbar_notificaciones,
+                'navbar_notificaciones_badge' => $navbar_notificaciones_badge,
+                'navbar_entregas'             => $entregas,
             ]);
         });
     }

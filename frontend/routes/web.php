@@ -3,6 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Middleware\EnsureUserIsAdmin;
+
 
 use App\Http\Controllers\{
     DashboardController,
@@ -47,18 +51,122 @@ Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-// Endpoint que recibe los datos del usuario autenticado en Firebase
+/*
+|--------------------------------------------------------------------------
+| Endpoint que recibe los datos del usuario autenticado en Firebase
+|--------------------------------------------------------------------------
+| - Valida el payload
+| - Consulta el rol en la tabla USUARIOS
+| - Solo crea sesión si el usuario existe y está activo
+*/
 Route::post('/firebase/login', function (Request $request) {
     $payload = $request->input('user');
 
-    if (!$payload || !isset($payload['email'])) {
-        return response()->json(['ok' => false, 'error' => 'Payload inválido'], 422);
+    if (
+        !$payload ||
+        empty($payload['email']) ||
+        empty($payload['uid'])
+    ) {
+        Log::warning('Login Firebase: payload inválido', ['payload' => $payload]);
+        return response()->json([
+            'ok'    => false,
+            'error' => 'Datos de autenticación incompletos.'
+        ], 422);
     }
 
-    // Guardar el usuario Firebase en la sesión
-    Session::put('firebase_user', $payload);
+    $uid   = $payload['uid'];
+    $email = $payload['email'];
 
-    return response()->json(['ok' => true]);
+    try {
+        // 1) Buscar por UID
+        $usuario = DB::table('USUARIOS')
+            ->select('id_usuario', 'rol', 'activo', 'uid_firebase')
+            ->where('uid_firebase', $uid)
+            ->first();
+
+        // 2) Si no existe, buscar por correo (usuarios viejos)
+        if (!$usuario) {
+            $usuario = DB::table('USUARIOS')
+                ->select('id_usuario', 'rol', 'activo', 'uid_firebase')
+                ->where('correo', $email)
+                ->first();
+
+            // Vincular UID si estaba vacío
+            if ($usuario && empty($usuario->uid_firebase)) {
+                DB::table('USUARIOS')
+                    ->where('id_usuario', $usuario->id_usuario)
+                    ->update(['uid_firebase' => $uid]);
+
+                Log::info('Login Firebase: se vinculó UID a usuario existente', [
+                    'id_usuario' => $usuario->id_usuario,
+                    'correo'     => $email,
+                    'nuevo_uid'  => $uid,
+                ]);
+
+                $usuario->uid_firebase = $uid;
+            }
+        }
+
+    } catch (\Throwable $e) {
+        // ⛔ AQUÍ ES DONDE ESTÁS CAYENDO AHORA MISMO
+        Log::error('Error al consultar USUARIOS en /firebase/login', [
+            'uid_firebase' => $uid,
+            'email'        => $email,
+            'message'      => $e->getMessage(),
+        ]);
+
+        // Para desarrollo te dejo el mensaje real para verlo en el alert
+        return response()->json([
+            'ok'    => false,
+            'error' => 'Error interno al validar usuario: ' . $e->getMessage(),
+        ], 500);
+    }
+
+    if (!$usuario) {
+        Log::warning('Login Firebase: UID/correo no registrados en USUARIOS', [
+            'uid_firebase' => $uid,
+            'email'        => $email,
+        ]);
+
+        Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole', 'user_role']);
+
+        return response()->json([
+            'ok'    => false,
+            'error' => 'Usuario no autorizado en el sistema local'
+        ], 403);
+    }
+
+    if (!$usuario->activo) {
+        Log::warning('Login Firebase: usuario inactivo', [
+            'uid_firebase' => $uid,
+            'email'        => $email,
+            'id_usuario'   => $usuario->id_usuario,
+        ]);
+
+        Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole', 'user_role']);
+
+        return response()->json([
+            'ok'    => false,
+            'error' => 'Cuenta inactiva. Contacta al administrador.'
+        ], 403);
+    }
+
+    Session::put('firebase_user', $payload);
+    Session::put('db_user_id', $usuario->id_usuario);
+    Session::put('db_user_role', $usuario->rol);
+    Session::put('userRole', $usuario->rol);
+    Session::put('user_role', $usuario->rol);
+
+    Log::info('Login Firebase exitoso', [
+        'id_usuario' => $usuario->id_usuario,
+        'correo'     => $email,
+        'rol'        => $usuario->rol,
+    ]);
+
+    return response()->json([
+        'ok'  => true,
+        'rol' => $usuario->rol,
+    ]);
 })->name('firebase.login');
 
 
@@ -68,7 +176,7 @@ Route::post('/firebase/login', function (Request $request) {
 |--------------------------------------------------------------------------
 */
 Route::get('/force-logout', function () {
-    Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole']);
+    Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole', 'user_role']);
     Session::invalidate();
     Session::regenerateToken();
 
@@ -83,7 +191,7 @@ Route::get('/force-logout', function () {
 */
 Route::get('/logout', function () {
     // Limpia datos asociados a la sesión
-    Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole']);
+    Session::forget(['firebase_user', 'db_user_id', 'db_user_role', 'userRole', 'user_role']);
     Session::invalidate();
     Session::regenerateToken();
 
@@ -101,32 +209,14 @@ Route::get('/logout', function () {
 */
 Route::middleware(['auth.firebase'])->group(function () {
 
-    // Dashboard principal
-    Route::get('/home', [DashboardController::class, 'index'])->name('dashboard');
-
-
-    //RUTAS USUARIOS
-    Route::get('/usuarios',            [UsuarioController::class, 'index'])->name('usuarios.index');
-    Route::get('/usuarios/create',     [UsuarioController::class, 'create'])->name('usuarios.create');
-    Route::get('/usuarios/{id}/edit',  [UsuarioController::class, 'edit'])->name('usuarios.edit');
-
-
     /*
     |--------------------------------------------------------------------------
-    | MÓDULO: EMPLEADOS
+    | RUTAS ACCESIBLES PARA ADMIN Y EMPLEADO
     |--------------------------------------------------------------------------
-    | (tu cambio: CRUD completo de empleados)
     */
-    Route::resource('empleados', EmpleadoController::class)->names([
-        'index'   => 'empleados.index',
-        'create'  => 'empleados.create',
-        'store'   => 'empleados.store',
-        'edit'    => 'empleados.edit',
-        'update'  => 'empleados.update',
-        'destroy' => 'empleados.destroy',
-    ])->parameters([
-        'empleados' => 'id',
-    ]);
+
+    // Dashboard principal
+    Route::get('/home', [DashboardController::class, 'index'])->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------
@@ -151,45 +241,8 @@ Route::middleware(['auth.firebase'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | MÓDULO: CLIENTES
-    |--------------------------------------------------------------------------
-    */
-    Route::resource('clientes', ClienteController::class)->names([
-        'index'   => 'clientes.index',
-        'create'  => 'clientes.create',
-        'store'   => 'clientes.store',
-        'edit'    => 'clientes.edit',
-        'update'  => 'clientes.update',
-        'destroy' => 'clientes.destroy',
-    ])->parameters([
-        'clientes' => 'id'
-    ]);
-
-    Route::get('/clientes/{id}/show',    [ClienteController::class, 'show'])->name('clientes.show');
-    Route::get('/clientes/{id}/reporte', [ClienteController::class, 'reporte'])->name('clientes.reporte');
-
-    /*
-    |--------------------------------------------------------------------------
-    | MÓDULO: VALORACIONES
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/valoraciones',         [ValoracionController::class, 'index'])->name('valoraciones.index');
-    Route::get('/valoraciones/create',  [ValoracionController::class, 'create'])->name('valoraciones.create');
-    Route::post('/valoraciones/store',  [ValoracionController::class, 'store'])->name('valoraciones.store');
-    Route::get('/valoraciones/reporte', [ValoracionController::class, 'reporte'])->name('valoraciones.reporte');
-
-    /*
-    |--------------------------------------------------------------------------
-    | MÓDULO: BITÁCORA
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
-
-    /*
-    |--------------------------------------------------------------------------
     | MÓDULO: ARCHIVOS
     |--------------------------------------------------------------------------
-    | Permite listar, crear y registrar archivos vinculados a pedidos.
     */
     Route::get('/archivos',       [ArchivoController::class, 'index'])->name('archivos.index');
     Route::get('/archivos/crear', [ArchivoController::class, 'create'])->name('archivos.create');
@@ -197,16 +250,11 @@ Route::middleware(['auth.firebase'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | MÓDULOS RESTANTES
+    | MÓDULO: NOTIFICACIONES
     |--------------------------------------------------------------------------
     */
-    Route::get('/usuarios', [UsuarioController::class, 'index'])->name('usuarios.index');
-    // Ojo: ya NO hay Route::get('/empleados'...), lo sustituye el resource de arriba.
     Route::get('/notificaciones', [NotificacionController::class, 'index'])->name('notificaciones.index');
 
-    Route::get('/perfil', [UsuarioController::class, 'perfil'])->name('perfil');
-
-    // ➕ Notificaciones: marcar una y marcar todas (se mantiene lo de tu compañero + lo tuyo)
     Route::put('/notificaciones/{id}/leido', [NotificacionController::class, 'markAsRead'])
         ->name('notificaciones.leer');
 
@@ -220,5 +268,84 @@ Route::middleware(['auth.firebase'])->group(function () {
     */
     Route::get('/historial',             [HistorialController::class, 'index'])->name('historial.index');
     Route::get('/historial/{id_pedido}', [HistorialController::class, 'show'])->name('historial.show');
+
+    /*
+    |--------------------------------------------------------------------------
+    | PERFIL
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/perfil', [UsuarioController::class, 'perfil'])->name('perfil');
+
+    /*
+    |--------------------------------------------------------------------------
+    | RUTAS SOLO PARA ADMINISTRADOR
+    |--------------------------------------------------------------------------
+    |
+    | Aquí usamos directamente la clase del middleware EnsureUserIsAdmin,
+    | sin alias 'admin'.
+    */
+    Route::middleware([EnsureUserIsAdmin::class])->group(function () {
+
+        /*
+        |----------------------------------------------------------------------
+        | MÓDULO: USUARIOS
+        |----------------------------------------------------------------------
+        */
+        Route::get('/usuarios',            [UsuarioController::class, 'index'])->name('usuarios.index');
+        Route::get('/usuarios/create',     [UsuarioController::class, 'create'])->name('usuarios.create');
+        Route::get('/usuarios/{id}/edit',  [UsuarioController::class, 'edit'])->name('usuarios.edit');
+
+        /*
+        |----------------------------------------------------------------------
+        | MÓDULO: EMPLEADOS
+        |----------------------------------------------------------------------
+        */
+        Route::resource('empleados', EmpleadoController::class)->names([
+            'index'   => 'empleados.index',
+            'create'  => 'empleados.create',
+            'store'   => 'empleados.store',
+            'edit'    => 'empleados.edit',
+            'update'  => 'empleados.update',
+            'destroy' => 'empleados.destroy',
+        ])->parameters([
+            'empleados' => 'id',
+        ]);
+
+        /*
+        |----------------------------------------------------------------------
+        | MÓDULO: CLIENTES
+        |----------------------------------------------------------------------
+        */
+        Route::resource('clientes', ClienteController::class)->names([
+            'index'   => 'clientes.index',
+            'create'  => 'clientes.create',
+            'store'   => 'clientes.store',
+            'edit'    => 'clientes.edit',
+            'update'  => 'clientes.update',
+            'destroy' => 'clientes.destroy',
+        ])->parameters([
+            'clientes' => 'id'
+        ]);
+
+        Route::get('/clientes/{id}/show',    [ClienteController::class, 'show'])->name('clientes.show');
+        Route::get('/clientes/{id}/reporte', [ClienteController::class, 'reporte'])->name('clientes.reporte');
+
+        /*
+        |----------------------------------------------------------------------
+        | MÓDULO: VALORACIONES
+        |----------------------------------------------------------------------
+        */
+        Route::get('/valoraciones',         [ValoracionController::class, 'index'])->name('valoraciones.index');
+        Route::get('/valoraciones/create',  [ValoracionController::class, 'create'])->name('valoraciones.create');
+        Route::post('/valoraciones/store',  [ValoracionController::class, 'store'])->name('valoraciones.store');
+        Route::get('/valoraciones/reporte', [ValoracionController::class, 'reporte'])->name('valoraciones.reporte');
+
+        /*
+        |----------------------------------------------------------------------
+        | MÓDULO: BITÁCORA
+        |----------------------------------------------------------------------
+        */
+        Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
+    });
 
 });
