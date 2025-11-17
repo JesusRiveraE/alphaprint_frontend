@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Middleware\EnsureUserIsAdmin;
 
-
 use App\Http\Controllers\{
     DashboardController,
     PedidoController,
@@ -19,7 +18,8 @@ use App\Http\Controllers\{
     NotificacionController,
     ArchivoController,
     HistorialController,
-    CalendarioController
+    CalendarioController,
+    HomeController, // 👈 NUEVO: controlador para /home
 };
 
 /*
@@ -27,7 +27,7 @@ use App\Http\Controllers\{
 | Rutas Públicas
 |--------------------------------------------------------------------------
 |
-| Si ya existe sesión de Firebase, redirige automáticamente al dashboard.
+| Si ya existe sesión de Firebase, redirige automáticamente al HOME (/home).
 | Si no, muestra la pantalla de login.
 |
 */
@@ -38,7 +38,8 @@ Route::get('/calendario', [CalendarioController::class, 'index'])
 
 Route::get('/', function () {
     if (Session::has('firebase_user')) {
-        return redirect()->route('dashboard');
+        // Antes: route('dashboard')
+        return redirect()->route('home');
     }
     return redirect()->route('login');
 });
@@ -46,7 +47,8 @@ Route::get('/', function () {
 Route::get('/login', function () {
     // Si el usuario ya está autenticado, no mostrar login
     if (Session::has('firebase_user')) {
-        return redirect()->route('dashboard');
+        // Antes: route('dashboard')
+        return redirect()->route('home');
     }
     return view('auth.login');
 })->name('login');
@@ -108,14 +110,12 @@ Route::post('/firebase/login', function (Request $request) {
         }
 
     } catch (\Throwable $e) {
-        // ⛔ AQUÍ ES DONDE ESTÁS CAYENDO AHORA MISMO
         Log::error('Error al consultar USUARIOS en /firebase/login', [
             'uid_firebase' => $uid,
             'email'        => $email,
             'message'      => $e->getMessage(),
         ]);
 
-        // Para desarrollo te dejo el mensaje real para verlo en el alert
         return response()->json([
             'ok'    => false,
             'error' => 'Error interno al validar usuario: ' . $e->getMessage(),
@@ -215,8 +215,11 @@ Route::middleware(['auth.firebase'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    // Dashboard principal
-    Route::get('/home', [DashboardController::class, 'index'])->name('dashboard');
+    // 🏠 NUEVO HOME: módulo con 5 botones
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+    // 📊 DASHBOARD: métricas y gráficos
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     /*
     |--------------------------------------------------------------------------
@@ -235,9 +238,9 @@ Route::middleware(['auth.firebase'])->group(function () {
     ]);
 
     // Cambiar estado (AJAX)
-    Route::put('/pedidos/{id}/estado', [PedidoController::class, 'updateEstado'])->name('pedidos.estado');
-    Route::get('/pedidos/{id}/show',   [PedidoController::class, 'show'])->name('pedidos.show');
-    Route::get('/pedidos/{id}/reporte',[PedidoController::class, 'reporte'])->name('pedidos.reporte');
+    Route::put('/pedidos/{id}/estado',  [PedidoController::class, 'updateEstado'])->name('pedidos.estado');
+    Route::get('/pedidos/{id}/show',    [PedidoController::class, 'show'])->name('pedidos.show');
+    Route::get('/pedidos/{id}/reporte', [PedidoController::class, 'reporte'])->name('pedidos.reporte');
 
     /*
     |--------------------------------------------------------------------------
@@ -287,18 +290,18 @@ Route::middleware(['auth.firebase'])->group(function () {
     Route::middleware([EnsureUserIsAdmin::class])->group(function () {
 
         /*
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         | MÓDULO: USUARIOS
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         */
-        Route::get('/usuarios',            [UsuarioController::class, 'index'])->name('usuarios.index');
-        Route::get('/usuarios/create',     [UsuarioController::class, 'create'])->name('usuarios.create');
-        Route::get('/usuarios/{id}/edit',  [UsuarioController::class, 'edit'])->name('usuarios.edit');
+        Route::get('/usuarios',           [UsuarioController::class, 'index'])->name('usuarios.index');
+        Route::get('/usuarios/create',    [UsuarioController::class, 'create'])->name('usuarios.create');
+        Route::get('/usuarios/{id}/edit', [UsuarioController::class, 'edit'])->name('usuarios.edit');
 
         /*
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         | MÓDULO: EMPLEADOS
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         */
         Route::resource('empleados', EmpleadoController::class)->names([
             'index'   => 'empleados.index',
@@ -312,9 +315,9 @@ Route::middleware(['auth.firebase'])->group(function () {
         ]);
 
         /*
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         | MÓDULO: CLIENTES
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         */
         Route::resource('clientes', ClienteController::class)->names([
             'index'   => 'clientes.index',
@@ -331,9 +334,9 @@ Route::middleware(['auth.firebase'])->group(function () {
         Route::get('/clientes/{id}/reporte', [ClienteController::class, 'reporte'])->name('clientes.reporte');
 
         /*
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         | MÓDULO: VALORACIONES
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         */
         Route::get('/valoraciones',         [ValoracionController::class, 'index'])->name('valoraciones.index');
         Route::get('/valoraciones/create',  [ValoracionController::class, 'create'])->name('valoraciones.create');
@@ -341,9 +344,9 @@ Route::middleware(['auth.firebase'])->group(function () {
         Route::get('/valoraciones/reporte', [ValoracionController::class, 'reporte'])->name('valoraciones.reporte');
 
         /*
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         | MÓDULO: BITÁCORA
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
         */
         Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
     });

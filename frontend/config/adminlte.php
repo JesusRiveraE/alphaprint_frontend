@@ -141,6 +141,7 @@ return [
     */
 
     'use_route_url'          => false,
+    // 👇 El logo y "dashboard_url" ahora apuntan al nuevo HOME con los 5 botones
     'dashboard_url'          => 'home',
     'logout_url'             => 'logout',
     'login_url'              => 'login',
@@ -170,6 +171,13 @@ return [
         [
             'type' => 'sidebar-menu-search',
             'text' => 'Buscar...',
+        ],
+
+        // 🏠 Nuevo HOME (módulo con 5 botones)
+        [
+            'text' => 'Inicio',
+            'url'  => 'home',
+            'icon' => 'fas fa-home',
         ],
 
         // 🔔 Notificaciones (visible para todos los logueados)
@@ -213,10 +221,10 @@ return [
             'can'    => 'is-admin',
         ],
 
-        // 🏠 Dashboard (solo Admin)
+        // 📊 Dashboard real (métricas) SOLO ADMIN
         [
             'text' => 'Dashboard',
-            'url'  => 'home',
+            'url'  => 'dashboard', // 👈 aquí cambiamos de 'home' a 'dashboard'
             'icon' => 'fas fa-tachometer-alt',
             'can'  => 'is-admin',
         ],
