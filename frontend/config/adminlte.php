@@ -210,7 +210,7 @@ return [
 
         // Historial de Estados
         [
-            'text' => 'Historial de Pedidos',
+            'text' => 'Historial de Estados',
             'url'  => 'historial',
             'icon' => 'fas fa-history',
         ],
