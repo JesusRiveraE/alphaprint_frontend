@@ -158,17 +158,29 @@
                     <small>Sesión activa</small>
                 </li>
 
-                <!-- Botón Perfil -->
-                <li class="user-body">
-                    <div class="row">
-                        <div class="col-12 text-center">
-                            <a href="{{ route('perfil') }}"
-                               class="btn btn-sm btn-brand-outline-perfil">
-                                <i class="fas fa-id-badge mr-1"></i> Perfil
-                            </a>
-                        </div>
-                    </div>
-                </li>
+    <!-- Botón Perfil -->
+    <li class="user-body">
+    <div class="row">
+        <div class="col-12 text-center">
+            <a href="{{ route('perfil') }}"
+               class="btn btn-sm btn-brand-outline-perfil">
+                <i class="fas fa-id-badge mr-1"></i> Perfil
+            </a>
+        </div>
+    </div>
+    </li>
+
+    <!-- Botón Acerca de -->
+    <li class="user-body">
+    <div class="row">
+        <div class="col-12 text-center">
+            <a href="{{ route('acerca') }}"
+               class="btn btn-sm btn-brand-outline-perfil">
+                <i class="fas fa-info-circle mr-1"></i> Acerca de
+            </a>
+        </div>
+    </div>
+    </li>
 
                 <!-- Botón Cerrar sesión -->
                 <li class="user-footer">
